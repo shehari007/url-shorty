@@ -20,13 +20,14 @@
 //     }
 // }
 var mysql = require('mysql2');
+require('dotenv').config();
 
 var pool = mysql.createPool({
-  host: 'gateway01.eu-central-1.prod.aws.tidbcloud.com',
-  port: 4000,
-  user: '***REMOVED-CREDENTIAL***',
-  password: '***REMOVED-CREDENTIAL***',
-  database: 'shorty-db',
+  host: process.env.DBHOST,
+  port: process.env.DBPORT,
+  user: process.env.DBUSERNAME,
+  password: process.env.DBPASS,
+  database: process.env.DBNAME,
   ssl: {
     minVersion: 'TLSv1.2',
     rejectUnauthorized: true

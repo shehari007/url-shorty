@@ -1,32 +1,59 @@
 
 import './App.css';
 import React, { useState } from 'react';
-import { HomeFilled, DashboardFilled, GithubFilled, LinkOutlined, CopyOutlined, QrcodeOutlined } from '@ant-design/icons';
-import { Menu, Card, Input, Alert, Space, Spin, Tag, Button, QRCode } from 'antd';
+import { HomeFilled, GithubFilled, LinkOutlined, CopyOutlined, QrcodeOutlined, WarningOutlined, ContactsOutlined, SafetyCertificateTwoTone } from '@ant-design/icons';
+import { Menu, Card, Input, Alert, Space, Spin, Tag, Button, QRCode, Layout } from 'antd';
+import Footer from './Components/Footer/Footer';
 import axios from 'axios';
+import Contact from './Components/Contact/Contact';
 import DetailsCard from './Components/DetailsCard/DetailsCard';
+import ReportPage from './Components/ReportPage/ReportPage';
 import copy from 'copy-to-clipboard';
+import Marquee from 'react-fast-marquee';
+
+const { Search } = Input;
 
 const items = [
   {
     label: 'Home',
-    key: 'mail',
+    key: 'home',
     icon: <HomeFilled />,
   },
   {
-    label: 'Stats',
-    key: 'stats',
-    icon: <DashboardFilled />,
+    label: 'Contact Us',
+    key: 'contact',
+    icon: <ContactsOutlined />,
   },
   {
-    label: 'Github',
+    label: 'Report Shorty Link',
+    key: 'report',
+    icon: <WarningOutlined />,
+  },
+  {
+    label: (
+      <a
+        href={process.env.REACT_APP_GITHUB_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        View Github
+      </a>
+    ),
+
     key: 'github',
     icon: <GithubFilled />,
-  }
+  },
 ]
 
+const { Content } = Layout;
+
+
 function App() {
-  const [current, setCurrent] = useState('mail');
+
+  const urlSearchParams = new URLSearchParams(window.location.search);
+  const testParam = urlSearchParams.get('menu');
+
+  const [current, setCurrent] = useState(!testParam ? 'home' : testParam);
   const [loading, setLoading] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [response, setResponse] = useState(false);
@@ -59,13 +86,13 @@ function App() {
   };
 
   const onSubmit = async (event) => {
-    event.preventDefault();
+    //event.preventDefault();
     setResponse(() => false);
     setCopied(() => false);
     setHTTPError(200);
     try {
       setLoading(true);
-      const data = await axios.post('http://localhost:8080/api/url-shorty', {
+      const data = await axios.post(process.env.REACT_APP_API_URL, {
         urlValue: urlValue
       });
 
@@ -81,103 +108,186 @@ function App() {
       if (error.response.status === 400) {
         setLoading(false);
         setHTTPError(400);
+      } else if (error.response.status === 403) {
+        setLoading(false);
+        setHTTPError(403);
       }
     }
   };
 
   const onClick = (e) => {
-    console.log('click ', e);
-    setCurrent(e.key);
+
+    if (e.key === 'github') {
+      setCurrent(current)
+    } else {
+      setResponse(() => false);
+      setCopied(() => false);
+      setHTTPError(200);
+      setCurrent(e.key)
+    }
   };
 
   return <>
-    <Menu onClick={onClick} selectedKeys={[current]} theme='light' mode="horizontal" style={{ justifyContent: 'center' }} items={items} />;
-    {current === 'mail' ? <div align="center">
-      <Card
-        style={{
-          width: '85%',
-          justifyItems: 'center',
-          boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)'
-        }}
-      >
-        <div align="center">
-          <h3>URL SHORTY</h3>
-          <form onSubmit={onSubmit}>
-            <Input
-              style={{ maxWidth: '90%' }}
-              placeholder="Enter your URL here.."
-              onChange={e => setUrlValue(e.target.value)}
-              prefix={<LinkOutlined />}
-            />
-          </form>
-          <br />
-          {loading === true ?
-            <Space>
-              <Spin tip="Shorty URL Generating..." size="medium">
-                <div className="content" />
-              </Spin>
-            </Space>
-            :
-            null}
+    <Layout style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }} className='layout-back'>
+      <Content style={{ flex: '1' }}>
 
-          {response === true && shortURL !== '' ?
-            <>
-              <Alert
-                message={<>
-                  <Tag color="#108ee9"><b>Generated Link: </b></Tag>
-                  <a href={shortURL} target="_blank">{shortURL} </a>
+        <Menu onClick={onClick} selectedKeys={[current]} theme='light' mode="horizontal" style={{ justifyContent: 'center', minHeight: '50px' }} items={items} />
 
-                  <Button title="Copy Link" type="primary" onClick={() => handleCopyClick()} icon={<CopyOutlined />} />
-                  <Button type="primary" onClick={() => handleQRShowBtn()} style={{ marginLeft: '5px' }} title='Show QR TAG' icon={<QrcodeOutlined />}></Button> {copied === true ? <> Copied! <img src='tick.webp' height={15} width={15} /></> : null}
+        {current === 'home' ?
+          <div align="center">
+            <Card
+              style={{
+                width: '85%',
+                justifyItems: 'center',
+                marginTop: '15px',
+                boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)'
+              }}
+            >
+              <div align="center">
+                <Alert
+                  banner
+                  type='info'
+                  style={{ maxWidth: '85%' }}
+                  message={
+                    <Marquee pauseOnHover gradient={false}>
+                      <SafetyCertificateTwoTone />&nbsp; 100% Ad-Free &nbsp;&nbsp;
+                      <SafetyCertificateTwoTone />&nbsp; SSL Secured &nbsp;&nbsp;
+                      <SafetyCertificateTwoTone />&nbsp; Open-Source &nbsp;&nbsp;
+                      <SafetyCertificateTwoTone />&nbsp; Cloud Secure Database &nbsp;&nbsp;
+                      <SafetyCertificateTwoTone />&nbsp; Spam Protection &nbsp;&nbsp;
+                      <SafetyCertificateTwoTone />&nbsp; Scam Link Blacklist Request&nbsp;&nbsp;
+                      <SafetyCertificateTwoTone />&nbsp; Hobby Project&nbsp;&nbsp;
+                      </Marquee>
+                  }
+                />
+                <h1> <img src='logo.png' height="150px" width="150px" alt="logo"></img> <br />SHORTY URL</h1>
+                <Search
+                  style={{ maxWidth: '95%' }}
+                  placeholder="Enter your URL here.."
+                  allowClear
+                  onChange={e => setUrlValue(e.target.value)}
+                  prefix={<LinkOutlined />}
+                  enterButton="Submit"
+                  size="large"
+                  onSearch={onSubmit}
+                />
+                <br />
+                {loading === true ?
+                  <Space>
+                    <Spin tip="Shorty URL Generating..." size="medium">
+                      <div className="content" />
+                    </Spin>
+                  </Space>
+                  :
+                  null}
+                <br />
+                {response === true && shortURL !== '' ?
+                  <>
+                    <Alert
+                      message={<>
+                        <Tag color="#108ee9"><b>Generated Link: </b></Tag>
+                        <a href={shortURL} target="_blank" rel="noreferrer">{shortURL} </a>
 
-                </>}
-                type="success"
-                showIcon
-                style={{ textAlign: 'center', maxWidth: '90%' }}
-                closable
-              />
-              {showQR === true ?
-                <>
-                  <div id="myqrcode">
-                    <QRCode
-                      value={shortURL}
-                      bgColor="#fff"
-                      style={{
-                        marginBottom: 15,
-                        marginTop: 15
-                      }}
+                        <Button title="Copy Link" type="primary" onClick={() => handleCopyClick()} icon={<CopyOutlined />} />
+                        <Button type="primary" onClick={() => handleQRShowBtn()} style={{ marginLeft: '5px' }} title='Show QR TAG' icon={<QrcodeOutlined />}></Button> {copied === true ? <> Copied! <img src='tick.webp' alt='tick' height={15} width={15} /></> : null}
+
+                      </>}
+                      type="success"
+
+                      style={{ textAlign: 'center', maxWidth: '95%' }}
+                      closable
+                    />
+                    {showQR === true ?
+                      <>
+                        <div id="myqrcode">
+                          <QRCode
+                            value={shortURL}
+                            bgColor="#fff"
+                            style={{
+                              marginBottom: 15,
+                              marginTop: 15
+                            }}
+
+                          />
+                          <p style={{ fontSize: '12px' }}>{shortURL}</p>
+                          <Button type="primary" onClick={downloadQRCode}>
+                            Download QR TAG
+                          </Button>
+                        </div>
+                      </>
+                      :
+                      null}
+                  </>
+                  :
+                  HTTPError === 400 ?
+                    <Alert
+                      message={<><p>Only HTTPS Links are allowed, Make sure your link starts with https://<br />Or entered URL is not a valid URL</p></>}
+                      type="error"
+                      style={{ textAlign: 'center', maxWidth: '95%' }}
 
                     />
-                    <p style={{fontSize:'12px'}}>{shortURL}</p>
-                    <Button type="primary" onClick={downloadQRCode}>
-                      Download QR TAG
-                    </Button>
-                  </div>
-                </>
-                :
-                null}
-            </>
+                    :
+                    HTTPError === 403 ?
+                      <Alert
+                        message={<><p>This URL is Blacklisted, Try another URL<br />You think it's mistake? <a href='?menu=contact'>Contact us</a></p></>}
+                        type="error"
+                        style={{ textAlign: 'center', maxWidth: '95%' }}
+                        showIcon
+                        closable
+                      />
+                      :
+                      null}
+              </div>
+            </Card>
+            <Card
+              style={{
+                width: '85%',
+                justifyItems: 'center',
+                marginTop: '15px',
+                boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)'
+              }}
+            >
+              <DetailsCard />
+
+            </Card>
+          </div>
+          :
+          current === 'report' ?
+            <div align="center">
+              <Card
+                style={{
+                  width: '85%',
+                  justifyItems: 'center',
+                  marginTop: '15px',
+                  boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)'
+                }}
+              >
+                <ReportPage />
+
+              </Card>
+            </div>
             :
-            HTTPError === 400 ?
-              <Alert
-                message="Only HTTPS Links are allowed, Make sure your link starts with https://"
-                type="error"
-                style={{ textAlign: 'center', maxWidth: '90%' }}
-                showIcon
-                closable
-              />
+            current === 'contact' ?
+              <div align="center">
+                <Card
+                  style={{
+                    width: '85%',
+                    justifyItems: 'center',
+                    marginTop: '15px',
+                    boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)'
+                  }}
+                >
+                  <Contact />
+
+                </Card>
+              </div>
               :
               null}
-        </div>
-      </Card>
-    </div>
-      :
-      current === 'stats' ?
-        <h1>HI STATS</h1>
-        :
-        null}
-
+      </Content>
+      <Footer />
+    </Layout>
   </>
+
 }
 
 export default App;
