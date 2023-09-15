@@ -2,7 +2,11 @@
   text-align: center;
  
 }
-body {
+ul li {
+  margin-bottom: 5px;
+}
+
+.layout-back {
   background: url(/public/back.gif);
   background-repeat: no-repeat;
   background-size: cover;
