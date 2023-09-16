@@ -34,10 +34,9 @@ A clean & elegant design using Ant Design framework and React Hooks for optimal 
 - Route Free Single Page Design With Dynamic Menu
 - Total Links & Links Clicked Stats
 
-## Demo
+## Live Preview
 
 https://shorty-cut.vercel.app/
-
 
 ## Pre Requirements
 
@@ -45,6 +44,11 @@ https://shorty-cut.vercel.app/
 - Node
 - XAMPP / Or any cloud based MySQL Database
 - VSCODE With ES6+ Module
+
+## Highly Recommended
+
+`Download the release zip for complete Frontend & Backend files and skip cloning steps from Installation for less confusion beacuse of seperate repos for Frontend & Backend`
+  
 ## Installation
 
 Clone the project
@@ -144,9 +148,9 @@ Start the server
   nodemon index.js
 ```
 
-## Deployment
+## Server Deployment
 
-`To deploy this project serverless vercel json config is provided in project you can deploy this on vercel without any extra configuration`
+`To deploy as a serverless function vercel json config is provided in server files you can deploy this on vercel without any extra configuration`
 
 
 ## Roadmap
