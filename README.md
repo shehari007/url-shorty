@@ -34,6 +34,10 @@ A clean & elegant design using Ant Design framework and React Hooks for optimal 
 - Route Free Single Page Design With Dynamic Menu
 - Total Links & Links Clicked Stats
 
+## Demo
+
+https://shorty-cut.vercel.app/
+
 
 ## Pre Requirements
 
@@ -143,10 +147,6 @@ Start the server
 ## Deployment
 
 `To deploy this project serverless vercel json config is provided in project you can deploy this on vercel without any extra configuration`
-
-## Demo
-
-https://shorty-cut.vercel.app/
 
 
 ## Roadmap
