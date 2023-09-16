@@ -1,14 +1,16 @@
 
+<div align="center">
+  <a href="https://choosealicense.com/licenses/mit/">
+    <img src="https://img.shields.io/badge/LICENSE-MIT-blue?style=flat-square" alt="MIT License">
+  </a>
+  
+  <img src="https://img.shields.io/badge/BUILD-PASSING-green?style=flat-square" alt="Build Passing">
+</div>
 
-[![MIT License](https://img.shields.io/badge/LICENSE-MIT-blue?style=flat-square)](https://choosealicense.com/licenses/mit/)
+<div align="center">
+    <img src="https://shorty-cut.vercel.app/logo.png" height="200px" width="200px">
+</div>
 
-![Static Badge](https://img.shields.io/badge/BUILD-PASSING-green?style=flat-square)
-
-
-
-
-
-![Logo](https://shorty-cut.vercel.app/logo.png)
 
 
 # SHORTY URL FULL STACK DEVELOPMENT
