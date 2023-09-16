@@ -1,70 +1,166 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
+[![MIT License](https://img.shields.io/badge/LICENSE-MIT-blue?style=flat-square)](https://choosealicense.com/licenses/mit/)
 
-In the project directory, you can run:
+![Static Badge](https://img.shields.io/badge/BUILD-PASSING-green?style=flat-square)
 
-### `npm start`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
 
-### `npm test`
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+![Logo](https://shorty-cut.vercel.app/logo.png)
 
-### `npm run build`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+# SHORTY URL FULL STACK DEVELOPMENT
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+A clean & elegant design using Ant Design framework and React Hooks for optimal performance and Express Server for backend operations. All serverless function which is easily deployed on vercel.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-### `npm run eject`
+## Tech Stack
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+**CLIENT:** React, Hooks, Ant Design 5+
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+**SERVER:** Node, Express
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Features
 
-## Learn More
+- SSL Secure Shorty Links
+- Only HTTPS Links Allowed
+- Downloadable QR CODE TAG
+- Report Scam Links
+- Route Free Single Page Design With Dynamic Menu
+- Total Links & Links Clicked Stats
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Pre Requirements
 
-### Code Splitting
+- React 18+
+- Node
+- XAMPP / Or any cloud based MySQL Database
+- VSCODE With ES6+ Module
+## Installation
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Clone the project
 
-### Analyzing the Bundle Size
+```bash
+  git clone https://github.com/shehari007/url-shorty
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Go to the project directory
 
-### Making a Progressive Web App
+```bash
+  cd url-shorty
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Rename the .env.example file -> .env and fill out the empty fields
 
-### Advanced Configuration
+```bash
+## BACKEND SERVER ENDPOINTS HERE 
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+REACT_APP_API_URL=                #e.g http://localhost:5000/
+REACT_APP_API_REPORT_URL=         #e.g http://localhost:5000/report
+REACT_APP_API_STATS_URL=          #e.g http://localhost:5000/stats
+REACT_APP_API_CONTACT_URL=        #e.g http://localhost:5000/contact 
 
-### Deployment
+REACT_APP_GITHUB_URL= https://github.com/shehari007/
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## set false for production
+REACT_APP_DEBUG_MODE=true 
+```
 
-### `npm run build` fails to minify
+Install dependencies
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```bash
+  npm install
+```
+
+Start the frontend
+
+```bash
+  npm start
+```
+
+- For Backend Node Express Server
+
+
+Clone the project
+
+```bash
+  git clone https://github.com/shehari007/url-shorty-server
+```
+
+Go to the project directory
+
+```bash
+  cd url-shorty-server
+```
+
+Rename the .env.example file -> .env and fill out the empty fields
+
+```bash
+## MAIN PORT ##
+
+PORT=5000   ## keep it 5000 if you used example links in env file for frontend
+
+## DB connection ##
+
+DBHOST=                
+DBPORT=
+DBUSERNAME=
+DBPASS=
+DBNAME=
+
+## CORS ORIGIN DOMAINS & METHODS ##
+
+DOMAINS= http://localhost:3000             ## Local running frontend address
+METHODS= 'GET,POST'
+
+## SHORT URL GENERATE CONSTRUCTOR ##
+
+SHORTURLDEF=http://localhost:5000/co/      ## this is the default constructor for generated URL's 
+
+
+##DEFAULT LENGTH OF NANOID PARAM FOR SHORTYURL
+
+PARAMLEN=5 
+```
+
+Install dependencies
+
+```bash
+  npm install && npm install nodemon --global
+```
+
+Start the server
+
+```bash
+  nodemon index.js
+```
+
+## Deployment
+
+`To deploy this project serverless vercel json config is provided in project you can deploy this on vercel without any extra configuration`
+
+## Demo
+
+https://shorty-cut.vercel.app/
+
+
+## Roadmap
+
+- Integrate Google Captcha to emit the use of bots generating short links (work in progress)
+
+- Per link Stats how many times clicked individually (work in progress)
+
+- Show links generated by same ip in a table for each user individually (work in progress)
+
+
+## License
+
+[MIT](https://choosealicense.com/licenses/mit/)
+
+
+## Feedback
+
+If you have any feedback, please reach out at shehariyar@gmail.com
