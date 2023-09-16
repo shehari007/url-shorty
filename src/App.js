@@ -32,7 +32,7 @@ const items = [
   {
     label: (
       <a
-        href={process.env.REACT_APP_GITHUB_URL}
+        href="https://github.com/shehari007/url-shorty"
         target="_blank"
         rel="noopener noreferrer"
       >
