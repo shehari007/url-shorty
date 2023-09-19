@@ -54,7 +54,7 @@ https://shorty-cut.vercel.app/
 Clone the project
 
 ```bash
-  git clone https://github.com/shehari007/url-shorty
+  git clone https://github.com/shehari007/url-shorty.git
 ```
 
 Go to the project directory
@@ -97,7 +97,7 @@ Start the frontend
 Clone the project
 
 ```bash
-  git clone https://github.com/shehari007/url-shorty-server
+  git clone https://github.com/shehari007/url-shorty-server.git
 ```
 
 Go to the project directory
