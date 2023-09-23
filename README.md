@@ -38,6 +38,22 @@ A clean & elegant design using Ant Design framework and React Hooks for optimal 
 
 https://shorty-cut.vercel.app/
 
+## Screenshots
+
+<details>
+  <summary>See SS here.</summary>
+  <div align="center">
+  <h4>Home Page View</h4>
+  <img src="https://github.com/shehari007/url-shorty/blob/main/screenshots/shorty%20(3).png?raw=true" name="image-1">
+  <h4>Link Generate View</h4>
+  <img src="https://github.com/shehari007/url-shorty/blob/main/screenshots/shorty%20(4).png?raw=true" name="image-2">
+  <h4>Report Form View</h4>
+  <img src="https://github.com/shehari007/url-shorty/blob/main/screenshots/shorty%20(2).png?raw=true" name="image-3">
+  <h4>Contact Form View</h4>
+  <img src="https://github.com/shehari007/url-shorty/blob/main/screenshots/shorty%20(1).png?raw=true" name="image-4">
+  </div>
+</details>
+
 ## Pre Requirements
 
 - React 18+
