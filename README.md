@@ -186,3 +186,6 @@ Start the server
 ## Feedback
 
 If you have any feedback, please reach out at shehariyar@gmail.com
+
+## Liked my dedication? Buy me a coffee?
+<a href="https://www.buymeacoffee.com/shehari007">☕ Buy Me A Coffee</a>
