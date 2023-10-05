@@ -6,7 +6,7 @@ import axios from 'axios';
 const DetailsCard = () => {
   const formatter = (value) => <CountUp end={value} separator="," />;
   const [getStats, setGetStats] = useState([{total_shorty: 0, total_clicked: 0}]);
-  const [HTTPError, setHTTPError] = useState(200);
+ // const [HTTPError, setHTTPError] = useState(200);
   useEffect(() => {
     const getStats = async () => {
       try {
@@ -20,7 +20,7 @@ const DetailsCard = () => {
         }
       } catch (error) {
         if (error.response.status === 500) {
-          setHTTPError(500);
+         // setHTTPError(500);
         }
       }
     }

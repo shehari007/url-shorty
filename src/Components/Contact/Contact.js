@@ -6,14 +6,14 @@ const Contact = () => {
 
     const { TextArea } = Input;
     const [HTTPError, setHTTPError] = useState(100);
-    const [Loading, setLoading] = useState(false);
+   // const [Loading, setLoading] = useState(false);
     const [formValues, setFormValues] = useState({
         fullname: '',
         email: '',
     });
 
     const handleFormSubmit = async (values) => {
-        setLoading(true);
+       // setLoading(true);
         setHTTPError(100);
         var detail = document.getElementById('detail').value;
         const { email, fullname } = values;
@@ -25,7 +25,7 @@ const Contact = () => {
             })
             console.log(api)
             if (api.status === 200) {
-                setLoading(false);
+              //  setLoading(false);
                 setHTTPError(200);
             }
         } catch (error) {

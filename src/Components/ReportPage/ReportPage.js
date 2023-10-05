@@ -7,14 +7,14 @@ const ReportPage = () => {
 
     const { TextArea } = Input;
     const [HTTPError, setHTTPError] = useState(100);
-    const [Loading, setLoading] = useState(false);
+    //const [Loading, setLoading] = useState(false);
     const [formValues, setFormValues] = useState({
         email: '',
         shorty_url: '',
     });
 
     const handleFormSubmit = async (values) => {
-        setLoading(true);
+      //  setLoading(true);
         setHTTPError(100);
         var detail = document.getElementById('detail').value;
         const { email, shorty_url } = values;
@@ -26,7 +26,7 @@ const ReportPage = () => {
             })
             console.log(api)
             if (api.status === 200) {
-                setLoading(false);
+               // setLoading(false);
                 setHTTPError(200);
             }
         } catch (error) {
