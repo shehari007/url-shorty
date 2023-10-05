@@ -1,13 +1,14 @@
 
 import './App.css';
 import React, { useState } from 'react';
-import { HomeFilled, GithubFilled, LinkOutlined, CopyOutlined, QrcodeOutlined, WarningOutlined, ContactsOutlined, SafetyCertificateTwoTone } from '@ant-design/icons';
+import { HomeFilled, GithubFilled, LinkOutlined, CopyOutlined, QrcodeOutlined, WarningOutlined, ContactsOutlined, SafetyCertificateTwoTone, RiseOutlined } from '@ant-design/icons';
 import { Menu, Card, Input, Alert, Space, Spin, Tag, Button, QRCode, Layout } from 'antd';
 import Footer from './Components/Footer/Footer';
 import axios from 'axios';
 import Contact from './Components/Contact/Contact';
 import DetailsCard from './Components/DetailsCard/DetailsCard';
 import ReportPage from './Components/ReportPage/ReportPage';
+import PerLinkStat from './Components/PerLinkStat/PerLinkStat';
 import copy from 'copy-to-clipboard';
 import Marquee from 'react-fast-marquee';
 
@@ -23,6 +24,11 @@ const items = [
     label: 'Contact Us',
     key: 'contact',
     icon: <ContactsOutlined />,
+  },
+  {
+    label: 'Per Link Stats',
+    key: 'per_link_stats',
+    icon: <RiseOutlined />
   },
   {
     label: 'Report Shorty Link',
@@ -278,6 +284,21 @@ function App() {
                   }}
                 >
                   <Contact />
+
+                </Card>
+              </div>
+              :
+              current === 'per_link_stats' ?
+              <div align="center">
+                <Card
+                  style={{
+                    width: '85%',
+                    justifyItems: 'center',
+                    marginTop: '15px',
+                    boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)'
+                  }}
+                >
+                  <PerLinkStat />
 
                 </Card>
               </div>

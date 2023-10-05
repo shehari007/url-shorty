@@ -10,8 +10,9 @@ const Footer = () => {
                     <ul style={{ listStyle: 'none', padding: '0' }}>
                         <li><a href='?menu=home'>Home Page</a></li>
                         <li><a href='?menu=report'>Report Shorty Link</a></li>
-                        <li><a href={process.env.REACT_APP_GITHUB_URL} target="_blank" rel="noreferrer">View Github</a></li>
+                        <li><a href='?menu=per_link_stats'>Per Link Stats</a></li>
                         <li><a href='?menu=contact'>Contact Us</a></li>
+                        <li><a href={process.env.REACT_APP_GITHUB_URL} target="_blank" rel="noreferrer">View Github</a></li>
                     </ul>
                 </Col>
                 <Col>
@@ -30,7 +31,7 @@ const Footer = () => {
             </Row>
             <hr />
             <div align="center">
-                <p>&copy; Copyright {new Date().getFullYear()} All rights reserved to <a href={process.env.REACT_APP_GITHUB_URL} target='_blank' rel='noreferre'>Muhammad Sheharyar Butt</a></p>
+                <p>&copy; Copyright {new Date().getFullYear()} All rights reserved to <a href={process.env.REACT_APP_GITHUB_URL} target='_blank' rel='noreferrer'>Muhammad Sheharyar Butt</a></p>
             </div>
         </Footer>
     )
