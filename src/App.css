@@ -7,7 +7,7 @@ ul li {
 }
 
 .layout-back {
-  background: url(/public/back.gif);
+  background: url(/public/back.jpg);
   background-repeat: no-repeat;
   background-size: cover;
 }
