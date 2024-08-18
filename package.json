@@ -7,7 +7,7 @@
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "antd": "^5.9.0",
-    "axios": "^1.6.0",
+    "axios": "^1.7.4",
     "copy-to-clipboard": "^3.3.3",
     "nanoid": "^3.3.4",
     "react": "^18.2.0",
