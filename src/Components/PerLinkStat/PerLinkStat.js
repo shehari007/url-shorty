@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Col, Row, Input, Alert, Statistic } from 'antd';
+import { Card, Col, Row, Input, Alert, Statistic, Descriptions, Tag } from 'antd';
 import { LinkOutlined, SafetyCertificateTwoTone, ClockCircleTwoTone, ThunderboltTwoTone, CrownTwoTone } from '@ant-design/icons';
 import axios from 'axios';
 import CountUp from 'react-countup';
@@ -10,28 +10,35 @@ const PerLinkStat = () => {
     // const [Loading, setLoading] = useState(false);
     const [stats, setStats] = useState(null);
     const [urlValue, setUrlValue] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [inputError, setInputError] = useState(null); // add
 
-    const onSubmit = async (event) => {
-        // event.preventDefault();
-        //setResponse(() => false);
-        // setCopied(() => false);
+    const onSubmit = async () => {
+        // basic empty validation
+        if (!urlValue || urlValue.trim().length === 0) {
+            setInputError('Please enter your Shorty URL');
+            return;
+        }
+        setInputError(null);
         setHTTPError(200);
         try {
-            //setLoading(true);
+            setLoading(true);
             const data = await axios.post(process.env.REACT_APP_API_PER_LINK_STATS, {
                 urlValue: urlValue
             });
 
             if (data.status === 200) {
-                // setLoading(false);
                 var res = data.data[0];
                 setStats(res);
             }
         } catch (error) {
-            if (error.response.status === 400) {
-                // setLoading(false);
+            if (error?.response?.status === 400) {
                 setHTTPError(400);
+            } else {
+                setHTTPError(500);
             }
+        } finally {
+            setLoading(false);
         }
     };
     const formatter = (value) => <CountUp end={value} separator="," />;
@@ -44,15 +51,34 @@ const PerLinkStat = () => {
                         boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)'
                     }}>
                     <h2>Per Shorty Link Stats</h2>
-                    <Search
+                    <Input.Search
                         style={{ maxWidth: '95%' }}
                         placeholder="Enter your Shorty URL here.."
                         allowClear
-                        onChange={e => setUrlValue(e.target.value)}
+                        onChange={e => {
+                            setUrlValue(e.target.value);
+                            if (inputError) setInputError(null);
+                        }}
                         prefix={<LinkOutlined />}
                         enterButton="Submit"
+                        required
+                        
                         size="large"
-                        onSearch={onSubmit} />
+                        onSearch={onSubmit}
+                        loading={loading}
+                        status={inputError ? 'error' : undefined}
+                        />
+
+                    {inputError ? (
+                        <Alert
+                            message={inputError}
+                            type="error"
+                            showIcon
+                            closable
+                            style={{ textAlign: 'left', maxWidth: '95%', marginTop: '12px' }}
+                            onClose={() => setInputError(null)}
+                        />
+                    ) : null}
 
                     {HTTPError === 400 ?
                         <Alert
@@ -60,71 +86,77 @@ const PerLinkStat = () => {
                             type="error"
                             showIcon
                             closable
-                            style={{ textAlign: 'center', maxWidth: '95%', marginTop: '2%' }}
+                            style={{ textAlign: 'center', maxWidth: '95%', marginTop: '12px' }}
 
                         /> : null}
+
+                    {/* Compact stats layout */}
+                    <Row gutter={0} style={{ justifyContent: 'center', marginTop: 16 }}>
+                        <Col span={24}>
+                            <Descriptions
+                                bordered
+                                size="small"
+                                layout="vertical"
+                                column={{ xs: 1, sm: 2, md: 3, lg: 5, xl: 5 }}
+                            >
+                                <Descriptions.Item label="Times Clicked">
+                                    <Statistic
+                                        value={stats ? stats.times_clicked : 0}
+                                        formatter={formatter}
+                                        valueStyle={{ color: 'red', fontWeight: 'bold' }}
+                                        prefix={<ThunderboltTwoTone twoToneColor="red" />}
+                                    />
+                                </Descriptions.Item>
+
+                                <Descriptions.Item label="Time Generated">
+                                    <span style={{ color: 'orange' }}>
+                                        <ClockCircleTwoTone twoToneColor="orange" /> {stats ? stats.time_issued : '--'}
+                                    </span>
+                                </Descriptions.Item>
+
+                                <Descriptions.Item label="Reported / Blacklisted">
+                                    {stats ? (
+                                        stats.blacklisted === 0 ? (
+                                            <Tag color="green">
+                                                <SafetyCertificateTwoTone twoToneColor="green" /> NO
+                                            </Tag>
+                                        ) : (
+                                            <Tag color="red">
+                                                <SafetyCertificateTwoTone twoToneColor="red" /> YES
+                                            </Tag>
+                                        )
+                                    ) : (
+                                        '--'
+                                    )}
+                                </Descriptions.Item>
+
+                                <Descriptions.Item label="Expired">
+                                    {stats ? (
+                                        stats.expired_status === 0 ? (
+                                            <Tag color="green">
+                                                <SafetyCertificateTwoTone twoToneColor="green" /> NO
+                                            </Tag>
+                                        ) : (
+                                            <Tag color="red">
+                                                <SafetyCertificateTwoTone twoToneColor="red" /> YES
+                                            </Tag>
+                                        )
+                                    ) : (
+                                        '--'
+                                    )}
+                                </Descriptions.Item>
+
+                                <Descriptions.Item label="Main URL Length">
+                                    <span style={{ color: 'purple' }}>
+                                        <CrownTwoTone twoToneColor="purple" /> {stats && stats.main_url ? stats.main_url.length : '--'}
+                                    </span>
+                                </Descriptions.Item>
+                            </Descriptions>
+                        </Col>
+                    </Row>
                 </Card>
             </Col>
         </Row>
-            <br /><br />
-            <Row gutter={8} style={{ justifyContent: 'center' }}>
-                <Col span={6} style={{ minWidth: '100%' }}>
-                    <Card
-                        style={{
-
-                            boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)'
-                        }}>
-                        <Statistic
-                            title="Times Clicked"
-                            value={stats ? stats.times_clicked : 0}
-                            formatter={formatter}
-                            //precision={2}
-                            valueStyle={{
-                                color: 'red',
-                                fontWeight: 'bold',
-                            }}
-                            prefix={<ThunderboltTwoTone twoToneColor="red" />}
-                        />
-                    </Card>
-                </Col>
-                <Col span={6} style={{ minWidth: '100%', marginTop: '15px' }}>
-                    <Card style={{
-
-                        boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)'
-                    }}>
-                        <div align="center" style={{ color: 'gray' }}>Time Generated</div>
-                        <div align="center" ><h2 style={{ color: 'orange' }}><ClockCircleTwoTone twoToneColor="orange" /> {stats ? stats.time_issued : '--'}</h2></div>
-                    </Card>
-                </Col>
-                <Col span={6} style={{ minWidth: '100%', marginTop: '15px' }}>
-                    <Card style={{
-
-                        boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)'
-                    }}>
-                        <div align="center" style={{ color: 'gray' }}>Reported OR Blacklisted?</div>
-                        <div align="center"><h2 style={{ color: stats && stats.blacklisted === 0 ? 'green' : 'red' }}><SafetyCertificateTwoTone twoToneColor={stats && stats.blacklisted === 0 ? 'green' : 'red'} /> {stats && stats.blacklisted === 0 ? 'NO' : stats && stats.blacklisted === 1 ? 'YES' : '--'}</h2></div>
-                    </Card>
-                </Col>
-                <Col span={6} style={{ minWidth: '100%', marginTop: '15px' }}>
-                    <Card style={{
-
-                        boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)'
-                    }}>
-                        <div align="center" style={{ color: 'gray' }}>Expired?</div>
-                        <div align="center"><h2 style={{ color: stats && stats.expired_status === 0 ? 'green' : 'red' }}><SafetyCertificateTwoTone twoToneColor={stats && stats.expired_status === 0 ? 'green' : 'red'} /> {stats && stats.expired_status === 0 ? 'NO' : stats && stats.expired_status === 1 ? 'YES' : '--'}</h2></div>
-                    </Card>
-                </Col>
-                <Col span={6} style={{ minWidth: '100%', marginTop: '15px' }}>
-                    <Card style={{
-
-                        boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)'
-                    }}>
-                        <div align="center" style={{ color: 'gray' }}>Main URL Length</div>
-                        <div align="center"><h2 style={{ color: 'purple' }}><CrownTwoTone twoToneColor="purple" /> {stats ? stats.main_url.length : '--'}</h2></div>
-                    </Card>
-                </Col>
-            </Row>
-
         </>
     );
 }
