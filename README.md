@@ -1,39 +1,45 @@
-
 <div align="center">
   <a href="https://choosealicense.com/licenses/mit/">
     <img src="https://img.shields.io/badge/LICENSE-MIT-blue?style=flat-square" alt="MIT License">
   </a>
-  
   <img src="https://img.shields.io/badge/BUILD-PASSING-green?style=flat-square" alt="Build Passing">
 </div>
 
 <div align="center">
-    <img src="https://shorty-cut.vercel.app/logo.png" height="200px" width="200px">
+  <img src="https://shorty-cut.vercel.app/logo.png" height="200px" width="200px" alt="Shorty URL logo">
 </div>
 
+# SHORTY URL — Full Stack
 
+Clean, performant URL shortener with:
+- Modern client-side routing via React Router (v6+)
+- Professional Ant Design 5 UI theme
+- React 18 with hooks
+- Express backend (server or serverless-ready)
 
-# SHORTY URL FULL STACK DEVELOPMENT
+All serverless functions can be deployed on Vercel with minimal setup.
 
-A clean & elegant design using Ant Design framework and React Hooks for optimal performance and Express Server for backend operations. All serverless function which is easily deployed on vercel.
+## What's New
 
+- Switched from query-based navigation to real routes using react-router-dom (Home, Contact, Report, Per-Link Stats)
+- New professional UI theme using Ant Design 5 with consistent page layout
+- Pages split under src/pages for better structure and scalability
+- Backward compatible: old links like ?menu=contact redirect to the correct route
 
 ## Tech Stack
 
-**CLIENT:** React, Hooks, Ant Design 5+
-
-**SERVER:** Node, Express
-
+- Client: React 18, React Router DOM 6+, Ant Design 5+
+- Server: Node.js, Express
 
 ## Features
 
-- SSL Secure Shorty Links
-- Only HTTPS Links Allowed
-- Downloadable QR CODE TAG
-- Report Scam Links
-- Route Free Single Page Design With Dynamic Menu
-- Total Links & Links Clicked Stats
-- Per link Stats how many times clicked individually and other info
+- SSL-secure short links
+- HTTPS-only link validation
+- Downloadable QR Code
+- Report suspicious links
+- Modern routing with React Router (Home, Contact, Report, Per-Link Stats)
+- Global stats: total links and total clicks
+- Per-link stats: clicks and metadata
 
 ## Live Preview
 
@@ -42,151 +48,141 @@ https://shorty-cut.vercel.app/
 ## Screenshots
 
 <details>
-  <summary>See SS here.</summary>
+  <summary>See screenshots</summary>
   <div align="center">
-  <h4>Home Page View</h4>
-  <img src="https://github.com/shehari007/url-shorty/blob/main/screenshots/shorty%20(3).png?raw=true" name="image-1">
-  <h4>Link Generate View</h4>
-  <img src="https://github.com/shehari007/url-shorty/blob/main/screenshots/shorty%20(4).png?raw=true" name="image-2">
-  <h4>Report Form View</h4>
-  <img src="https://github.com/shehari007/url-shorty/blob/main/screenshots/shorty%20(2).png?raw=true" name="image-3">
-  <h4>Contact Form View</h4>
-  <img src="https://github.com/shehari007/url-shorty/blob/main/screenshots/shorty%20(1).png?raw=true" name="image-4">
+    <h4>Home Page View</h4>
+    <img src="https://github.com/shehari007/url-shorty/blob/main/screenshots/shorty%20(3).png?raw=true" alt="Home Page">
+    <h4>Link Generate View</h4>
+    <img src="https://github.com/shehari007/url-shorty/blob/main/screenshots/shorty%20(4).png?raw=true" alt="Generate View">
+    <h4>Report Form View</h4>
+    <img src="https://github.com/shehari007/url-shorty/blob/main/screenshots/shorty%20(2).png?raw=true" alt="Report View">
+    <h4>Contact Form View</h4>
+    <img src="https://github.com/shehari007/url-shorty/blob/main/screenshots/shorty%20(1).png?raw=true" alt="Contact View">
   </div>
 </details>
 
-## Pre Requirements
+## Project Structure
+
+```text
+src/
+  App.js
+  index.js
+  pages/
+    Home.jsx
+    Contact.jsx
+    Report.jsx
+    PerLinkStats.jsx
+    PageContainer.jsx
+  Components/
+    Contact/
+    DetailsCard/
+    PerLinkStat/
+    ReportPage/
+  ...
+```
+
+## Prerequisites
 
 - React 18+
-- Node
-- XAMPP / Or any cloud based MySQL Database
-- VSCODE With ES6+ Module
+- Node.js (LTS)
+- MySQL (XAMPP or any cloud instance)
+- VS Code (or any editor with ES6+ support)
 
-## Highly Recommended
-
-`Download the release zip for complete Frontend & Backend files and skip cloning steps from Installation for less confusion beacuse of seperate repos for Frontend & Backend`
-  
 ## Installation
 
 Clone the project
 
 ```bash
-  git clone https://github.com/shehari007/url-shorty.git
+git clone https://github.com/shehari007/url-shorty.git
+cd url-shorty
 ```
 
-Go to the project directory
+Rename .env.example -> .env and fill values
 
 ```bash
-  cd url-shorty
-```
+## BACKEND SERVER ENDPOINTS HERE
+REACT_APP_API_URL=                # e.g. http://localhost:5000/
+REACT_APP_API_REPORT_URL=         # e.g. http://localhost:5000/report
+REACT_APP_API_STATS_URL=          # e.g. http://localhost:5000/stats
+REACT_APP_API_CONTACT_URL=        # e.g. http://localhost:5000/contact
 
-Rename the .env.example file -> .env and fill out the empty fields
-
-```bash
-## BACKEND SERVER ENDPOINTS HERE 
-
-REACT_APP_API_URL=                #e.g http://localhost:5000/
-REACT_APP_API_REPORT_URL=         #e.g http://localhost:5000/report
-REACT_APP_API_STATS_URL=          #e.g http://localhost:5000/stats
-REACT_APP_API_CONTACT_URL=        #e.g http://localhost:5000/contact 
-
-REACT_APP_GITHUB_URL= https://github.com/shehari007/
+REACT_APP_GITHUB_URL=https://github.com/shehari007/
 
 ## set false for production
-REACT_APP_DEBUG_MODE=true 
+REACT_APP_DEBUG_MODE=true
 ```
 
-Install dependencies
+Install dependencies (updated to latest)
 
 ```bash
-  npm install
+npm install
+# optional explicit upgrades
+npm i -S react-router-dom@latest antd@latest
 ```
 
 Start the frontend
 
 ```bash
-  npm start
+npm start
 ```
 
-## For Backend Node Express Server
+## Migration Notes (from older versions)
 
+- Navigation is now handled by React Router (v6+) in App.js with <Routes> and <Route>.
+- Old URLs using ?menu=... will automatically redirect to proper routes.
+- UI is standardized via a PageContainer layout and Ant Design theme in index.js.
 
-Clone the project
+## Backend (Node + Express)
+
+Clone the server
 
 ```bash
-  git clone https://github.com/shehari007/url-shorty-server.git
+git clone https://github.com/shehari007/url-shorty-server.git
+cd url-shorty-server
 ```
 
-Go to the project directory
+Create .env
 
 ```bash
-  cd url-shorty-server
-```
+PORT=5000
 
-Rename the .env.example file -> .env and fill out the empty fields
-
-```bash
-## MAIN PORT ##
-
-PORT=5000   ## keep it 5000 if you used example links in env file for frontend
-
-## DB connection ##
-
-DBHOST=                
+DBHOST=
 DBPORT=
 DBUSERNAME=
 DBPASS=
 DBNAME=
 
-## CORS ORIGIN DOMAINS & METHODS ##
+DOMAINS=http://localhost:3000
+METHODS='GET,POST'
 
-DOMAINS= http://localhost:3000             ## Local running frontend address
-METHODS= 'GET,POST'
-
-## SHORT URL GENERATE CONSTRUCTOR ##
-
-SHORTURLDEF=http://localhost:5000/co/      ## this is the default constructor for generated URL's 
-
-
-##DEFAULT LENGTH OF NANOID PARAM FOR SHORTYURL
-
-PARAMLEN=5 
+SHORTURLDEF=http://localhost:5000/co/
+PARAMLEN=5
 ```
 
-Install dependencies
+Install and run
 
 ```bash
-  npm install && npm install nodemon --global
+npm install && npm install -g nodemon
+nodemon index.js
 ```
 
-Start the server
+## Serverless Deployment
 
-```bash
-  nodemon index.js
-```
-
-## Server Deployment
-
-`To deploy as a serverless function vercel json config is provided in server files you can deploy this on vercel without any extra configuration`
-
+Vercel config is provided in the server repo to deploy as serverless functions with no extra setup.
 
 ## Roadmap
 
-- Integrate Google Captcha to emit the use of bots generating short links (work in progress)
-
-- Per link Stats how many times clicked individually and other info (completed & live)
-
-- Show links generated by same ip in a table for each user individually (work in progress)
-
+- Google reCAPTCHA integration to reduce bot traffic (in progress)
+- Show links generated by same IP per user (in progress)
 
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
 
-
 ## Feedback
 
-If you have any feedback, please reach out at shehariyar@gmail.com
+shehariyar@gmail.com
 
-## Liked my dedication? Buy me a coffee?
+## Support
+
 <a href="https://www.buymeacoffee.com/shehari007">☕ Buy Me A Coffee</a>
