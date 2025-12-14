@@ -37,7 +37,7 @@ const createTables = async () => {
       CREATE TABLE IF NOT EXISTS shorty_url (
         id INT AUTO_INCREMENT PRIMARY KEY,
         main_url TEXT NOT NULL,
-        short_url VARCHAR(20) NOT NULL UNIQUE,
+        short_url VARCHAR(50) NOT NULL UNIQUE,
         expired_status TINYINT(1) DEFAULT 0,
         blacklisted TINYINT(1) DEFAULT 0,
         times_clicked INT DEFAULT 0,

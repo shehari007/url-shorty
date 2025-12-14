@@ -33,13 +33,41 @@ const formatDateTime = (date = new Date()) => {
 
 /**
  * Get client IP from request
+ * Handles various proxy headers including Vercel, Cloudflare, and standard proxies
  */
 const getClientIP = (req) => {
-  return req.headers['x-forwarded-for']?.split(',')[0]?.trim() 
-    || req.headers['x-real-ip'] 
-    || req.connection?.remoteAddress 
+  // Vercel-specific header (most reliable on Vercel)
+  const vercelForwardedFor = req.headers['x-vercel-forwarded-for'];
+  if (vercelForwardedFor) {
+    return vercelForwardedFor.split(',')[0].trim();
+  }
+
+  // Standard forwarded-for header (used by most proxies)
+  const xForwardedFor = req.headers['x-forwarded-for'];
+  if (xForwardedFor) {
+    return xForwardedFor.split(',')[0].trim();
+  }
+
+  // Cloudflare header
+  const cfConnectingIP = req.headers['cf-connecting-ip'];
+  if (cfConnectingIP) {
+    return cfConnectingIP;
+  }
+
+  // Real IP header (used by some proxies like nginx)
+  const xRealIP = req.headers['x-real-ip'];
+  if (xRealIP) {
+    return xRealIP;
+  }
+
+  // Fallback to Express req.ip (respects trust proxy setting)
+  if (req.ip && req.ip !== '127.0.0.1' && req.ip !== '::1') {
+    return req.ip;
+  }
+
+  // Last resort: direct connection
+  return req.connection?.remoteAddress 
     || req.socket?.remoteAddress 
-    || req.ip 
     || 'unknown';
 };
 

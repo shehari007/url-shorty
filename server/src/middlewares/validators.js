@@ -1,5 +1,6 @@
 const { PARAM_LENGTH } = require('../config/constants');
 const { ApiError } = require('./errorHandler');
+const { getClientIP } = require('../utils');
 
 // Validate short URL parameter in redirect routes
 const validateShortParam = (req, res, next) => {
@@ -63,7 +64,7 @@ const requestLogger = (req, res, next) => {
       path: req.path,
       statusCode: res.statusCode,
       duration: `${duration}ms`,
-      ip: req.ip,
+      ip: getClientIP(req),
       userAgent: req.headers['user-agent']?.slice(0, 100),
     };
     
