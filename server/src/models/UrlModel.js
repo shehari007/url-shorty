@@ -21,7 +21,7 @@ class UrlModel {
    */
   static async findByShortUrl(shortUrl) {
     const result = await query(
-      `SELECT id, main_url, short_url, expired_status, blacklisted, times_clicked, time_issued 
+      `SELECT id, main_url, short_url, expired_status, blacklisted, times_clicked, time_issued, COALESCE(qr_generated, 0) AS qr_generated
        FROM shorty_url 
        WHERE short_url = ? 
        LIMIT 1`,
@@ -63,7 +63,7 @@ class UrlModel {
         COALESCE(SUM(times_clicked), 0) AS total_clicked,
         COUNT(CASE WHEN blacklisted = 1 THEN 1 END) AS total_blacklisted,
         COUNT(CASE WHEN expired_status = 1 THEN 1 END) AS total_expired,
-        COUNT(CASE WHEN DATE(time_issued) = CURDATE() THEN 1 END) AS created_today
+        COUNT(CASE WHEN time_issued >= CONCAT(UTC_DATE(), ' 00:00:00') THEN 1 END) AS created_today
        FROM shorty_url`
     );
     return result[0];

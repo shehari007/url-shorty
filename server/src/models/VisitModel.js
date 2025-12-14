@@ -29,15 +29,16 @@ class VisitModel {
         `SELECT 
           COUNT(*) AS total_visits,
           COUNT(DISTINCT visitor_ip) AS unique_visitors,
-          COUNT(CASE WHEN DATE(visited_at) = CURDATE() THEN 1 END) AS visits_today,
-          COUNT(CASE WHEN visited_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 END) AS visits_last_week
+          COUNT(CASE WHEN visited_at >= CONCAT(UTC_DATE(), ' 00:00:00') THEN 1 END) AS visits_today,
+          COUNT(CASE WHEN visited_at >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 7 DAY) THEN 1 END) AS visits_last_week,
+          COUNT(CASE WHEN visited_at >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 30 DAY) THEN 1 END) AS visits_month
          FROM shorty_visits 
          WHERE url_id = ?`,
         [urlId]
       );
       return result[0];
     } catch (error) {
-      return { total_visits: 0, unique_visitors: 0, visits_today: 0, visits_last_week: 0 };
+      return { total_visits: 0, unique_visitors: 0, visits_today: 0, visits_last_week: 0, visits_month: 0 };
     }
   }
 
@@ -88,7 +89,7 @@ class VisitModel {
   static async getTodayCount() {
     try {
       const result = await query(
-        `SELECT COUNT(*) AS count FROM shorty_visits WHERE DATE(visited_at) = CURDATE()`
+        `SELECT COUNT(*) AS count FROM shorty_visits WHERE visited_at >= CONCAT(UTC_DATE(), ' 00:00:00')`
       );
       return result[0].count;
     } catch (error) {

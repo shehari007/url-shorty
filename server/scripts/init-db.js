@@ -96,7 +96,7 @@ const createTables = async () => {
       CREATE TABLE IF NOT EXISTS shorty_report (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_email VARCHAR(255) NOT NULL,
-        shorty_url VARCHAR(20) NOT NULL,
+        shorty_url VARCHAR(50) NOT NULL,
         url_id INT,
         report_details TEXT,
         time_report DATETIME NOT NULL,

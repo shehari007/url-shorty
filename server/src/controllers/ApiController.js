@@ -199,6 +199,7 @@ const handlePerLinkStats = async (req, res, payload) => {
         timesClicked: link.times_clicked,
         timeIssued: link.time_issued,
         blacklisted: link.blacklisted,
+        qrGenerated: link.qr_generated || 0,
       },
       visitStats,
       dailyVisits,

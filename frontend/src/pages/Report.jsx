@@ -41,15 +41,8 @@ export default function Report() {
         message.success('Report submitted successfully!');
       }
     } catch (error) {
-      if (error?.response?.status === 404) {
-        message.error('This Shorty URL was not found in our system.');
-      } else if (error?.response?.status === 409) {
-        message.error('This URL has already been reported.');
-      } else if (error?.response?.status === 429) {
-        message.error('Too many submissions. Please try again later.');
-      } else {
-        message.error('Failed to submit report. Please try again.');
-      }
+      const errorMessage = error?.response?.data?.message || 'Failed to submit report. Please try again.';
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
