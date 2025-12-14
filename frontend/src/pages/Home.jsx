@@ -197,13 +197,8 @@ export default function Home() {
         setUrlValue('');
       }
     } catch (error) {
-      if (error?.response?.status === 400) {
-        message.error('Invalid URL. Please make sure your link starts with https://');
-      } else if (error?.response?.status === 403) {
-        message.error('This URL is blacklisted. Try another URL.');
-      } else {
-        message.error('Something went wrong. Please try again.');
-      }
+      const errorMessage = error?.response?.data?.message || 'Something went wrong. Please try again.';
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }

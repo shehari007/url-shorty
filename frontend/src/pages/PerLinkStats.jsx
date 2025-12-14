@@ -31,6 +31,20 @@ import { ApiService } from '../services';
 
 const { Title, Text, Paragraph } = Typography;
 
+// Helper function to format dates properly
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString;
+  return date.toLocaleDateString('en-US', { 
+    year: 'numeric',
+    month: 'short', 
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
 export default function PerLinkStats() {
   const [searchParams] = useSearchParams();
   const [urlValue, setUrlValue] = useState('');
@@ -66,13 +80,8 @@ export default function PerLinkStats() {
     } catch (error) {
       setStats(null);
       setVisitStats(null);
-      if (error?.response?.status === 400) {
-        message.error('Invalid URL format. Please enter a valid Shorty URL link.');
-      } else if (error?.response?.status === 404) {
-        message.error('Link not found. Please check the URL and try again.');
-      } else {
-        message.error('Something went wrong. Please try again.');
-      }
+      const errorMessage = error?.response?.data?.message || 'Something went wrong. Please try again.';
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -193,7 +202,7 @@ export default function PerLinkStats() {
             </Paragraph>
             <Text type="secondary">
               <ClockCircleOutlined style={{ marginRight: 6 }} />
-              Created: {stats.timeIssued || 'N/A'}
+              Created: {formatDate(stats.timeIssued)}
             </Text>
           </div>
 

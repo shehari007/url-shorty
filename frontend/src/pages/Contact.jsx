@@ -40,11 +40,8 @@ export default function ContactPage() {
         message.success('Message sent successfully!');
       }
     } catch (error) {
-      if (error?.response?.status === 429) {
-        message.error('Too many submissions. Please try again later.');
-      } else {
-        message.error('Failed to send message. Please try again.');
-      }
+      const errorMessage = error?.response?.data?.message || 'Failed to send message. Please try again.';
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
