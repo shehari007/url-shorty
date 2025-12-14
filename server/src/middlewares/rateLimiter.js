@@ -1,6 +1,6 @@
 const rateLimit = require('express-rate-limit');
 const { RATE_LIMIT } = require('../config/constants');
-const { htmlTemplates } = require('../utils');
+const { htmlTemplates, getClientIP } = require('../utils');
 
 // General API rate limiter
 const apiLimiter = rateLimit({
@@ -12,9 +12,7 @@ const apiLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => {
-    return req.ip || req.headers['x-forwarded-for'] || 'unknown';
-  },
+  keyGenerator: (req) => getClientIP(req),
 });
 
 // Stricter limiter for URL generation
@@ -27,9 +25,7 @@ const generateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => {
-    return req.ip || req.headers['x-forwarded-for'] || 'unknown';
-  },
+  keyGenerator: (req) => getClientIP(req),
 });
 
 // Report submission limiter
@@ -42,9 +38,7 @@ const reportLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => {
-    return req.ip || req.headers['x-forwarded-for'] || 'unknown';
-  },
+  keyGenerator: (req) => getClientIP(req),
 });
 
 // Contact form limiter
@@ -57,9 +51,7 @@ const contactLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => {
-    return req.ip || req.headers['x-forwarded-for'] || 'unknown';
-  },
+  keyGenerator: (req) => getClientIP(req),
 });
 
 // Redirect limiter (more lenient) - returns HTML page
@@ -71,6 +63,7 @@ const redirectLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req) => getClientIP(req),
 });
 
 module.exports = {
