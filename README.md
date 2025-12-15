@@ -30,7 +30,6 @@
 ## 🌐 Live Demo
 
 - **Frontend**: [https://shorty.msyb.dev](https://shorty.msyb.dev)
-- **API Server**: [https://short.msyb.dev](https://short.msyb.dev/health)
 
 ## 🛠️ Tech Stack
 
