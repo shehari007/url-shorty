@@ -47,19 +47,17 @@ https://shorty-cut.vercel.app/
 
 ## Screenshots
 
-<details>
-  <summary>See screenshots</summary>
-  <div align="center">
-    <h4>Home Page View</h4>
-    <img src="https://github.com/shehari007/url-shorty/blob/main/screenshots/shorty%20(3).png?raw=true" alt="Home Page">
-    <h4>Link Generate View</h4>
-    <img src="https://github.com/shehari007/url-shorty/blob/main/screenshots/shorty%20(4).png?raw=true" alt="Generate View">
-    <h4>Report Form View</h4>
-    <img src="https://github.com/shehari007/url-shorty/blob/main/screenshots/shorty%20(2).png?raw=true" alt="Report View">
-    <h4>Contact Form View</h4>
-    <img src="https://github.com/shehari007/url-shorty/blob/main/screenshots/shorty%20(1).png?raw=true" alt="Contact View">
-  </div>
-</details>
+### Home
+![Home](../screenshots/3.png)
+
+### Link Generated
+![Link Generated](../screenshots/4.png)
+
+### Report Link
+![Report Link](../screenshots/2.png)
+
+### Contact
+![Contact](../screenshots/1.png)
 
 ## Project Structure
 
