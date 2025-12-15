@@ -231,19 +231,17 @@ npm start
 
 ## 📸 Screenshots
 
-<details>
-<summary>Click to view screenshots</summary>
+### Home
+![Home](screenshots/1.png)
 
-### Home Page
-![Home Page](screenshots/home.png)
+### Link Stats
+![Link Stats](screenshots/2.png)
 
-### Link Analytics
-![Analytics](screenshots/analytics.png)
+### Report Link
+![Report Link](screenshots/3.png)
 
 ### Dark Mode
-![Dark Mode](screenshots/dark-mode.png)
-
-</details>
+![Dark Mode](screenshots/4.png)
 
 ## 🤝 Contributing
 
