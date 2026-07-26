@@ -1,186 +1,132 @@
-<div align="center">
-  <a href="https://choosealicense.com/licenses/mit/">
-    <img src="https://img.shields.io/badge/LICENSE-MIT-blue?style=flat-square" alt="MIT License">
-  </a>
-  <img src="https://img.shields.io/badge/BUILD-PASSING-green?style=flat-square" alt="Build Passing">
-</div>
+# Shorty Web
 
-<div align="center">
-  <img src="https://shorty-cut.vercel.app/logo.png" height="200px" width="200px" alt="Shorty URL logo">
-</div>
+Next.js 16 (App Router) + React 19 + Ant Design 6 + TypeScript. Serves the
+public site and the `/admin` console.
 
-# SHORTY URL — Full Stack
+## Requirements
 
-Clean, performant URL shortener with:
-- Modern client-side routing via React Router (v6+)
-- Professional Ant Design 5 UI theme
-- React 18 with hooks
-- Express backend (server or serverless-ready)
+- Node.js **20.9+**
+- A running [Shorty API](../server/README.md)
 
-All serverless functions can be deployed on Vercel with minimal setup.
-
-## What's New
-
-- Switched from query-based navigation to real routes using react-router-dom (Home, Contact, Report, Per-Link Stats)
-- New professional UI theme using Ant Design 5 with consistent page layout
-- Pages split under src/pages for better structure and scalability
-- Backward compatible: old links like ?menu=contact redirect to the correct route
-
-## Tech Stack
-
-- Client: React 19, React Router DOM 7, Ant Design 6
-- Server: Node.js, Express
-
-## Features
-
-- SSL-secure short links
-- HTTPS-only link validation
-- Downloadable QR Code
-- Report suspicious links
-- Modern routing with React Router (Home, Contact, Report, Per-Link Stats)
-- Global stats: total links and total clicks
-- Per-link stats: clicks and metadata
-
-## Live Preview
-
-https://shorty-cut.vercel.app/
-
-## Screenshots
-
-### Home
-![Home](../screenshots/3.png)
-
-### Link Generated
-![Link Generated](../screenshots/4.png)
-
-### Report Link
-![Report Link](../screenshots/2.png)
-
-### Contact
-![Contact](../screenshots/1.png)
-
-## Project Structure
-
-```text
-src/
-  App.js
-  index.js
-  pages/
-    Home.jsx
-    Contact.jsx
-    Report.jsx
-    PerLinkStats.jsx
-    PageContainer.jsx
-  Components/
-    Contact/
-    DetailsCard/
-    PerLinkStat/
-    ReportPage/
-  ...
-```
-
-## Prerequisites
-
-- React 18+
-- Node.js (LTS)
-- MySQL (XAMPP or any cloud instance)
-- VS Code (or any editor with ES6+ support)
-
-## Installation
-
-Clone the project
-
-```bash
-git clone https://github.com/shehari007/url-shorty.git
-cd url-shorty
-```
-
-Rename .env.example -> .env and fill values
-
-```bash
-## BACKEND SERVER ENDPOINTS HERE
-REACT_APP_API_URL=                # e.g. http://localhost:5000/
-REACT_APP_API_REPORT_URL=         # e.g. http://localhost:5000/report
-REACT_APP_API_STATS_URL=          # e.g. http://localhost:5000/stats
-REACT_APP_API_CONTACT_URL=        # e.g. http://localhost:5000/contact
-
-REACT_APP_GITHUB_URL=https://github.com/shehari007/
-
-## set false for production
-REACT_APP_DEBUG_MODE=true
-```
-
-Install dependencies (updated to latest)
+## Setup
 
 ```bash
 npm install
-# optional explicit upgrades
-npm i -S react-router-dom@latest antd@latest
+cp .env.example .env.local
+npm run dev          # http://localhost:3000
 ```
 
-Start the frontend
+## Environment
 
-```bash
-npm start
-```
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `NEXT_PUBLIC_API_URL` | yes | API base URL used by the browser. No trailing slash |
+| `NEXT_PUBLIC_SITE_URL` | yes | Canonical origin, drives metadata, `sitemap.xml`, `robots.txt`, OG tags |
+| `NEXT_PUBLIC_SHORT_URL` | yes | Origin that serves the short links |
+| `API_URL` | no | Server-side API base. Set when the Next server has a private route to the API; falls back to `NEXT_PUBLIC_API_URL` |
+| `NEXT_PUBLIC_GITHUB_URL` | no | Repository link in the header and footer |
+| `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | no | Google Search Console token |
 
-## Migration Notes (from older versions)
+`NEXT_PUBLIC_*` values are inlined into the browser bundle at build time. Never
+put a secret in one.
 
-- Navigation is now handled by React Router (v6+) in App.js with <Routes> and <Route>.
-- Old URLs using ?menu=... will automatically redirect to proper routes.
-- UI is standardized via a PageContainer layout and Ant Design theme in index.js.
+## Routes
 
-## Backend (Node + Express)
+### Public
 
-Clone the server
+| Path | Rendering | Purpose |
+| --- | --- | --- |
+| `/` | Static, revalidated every 60s | Hero, shortener, live platform stats, features, FAQ |
+| `/analytics` | Static shell + client lookup | Per-link analytics for any Shorty link |
+| `/report` | Static | Abuse report form |
+| `/contact` | Static | Contact form |
+| `/terms`, `/privacy` | Static | Legal pages |
+| `/sitemap.xml`, `/robots.txt`, `/manifest.webmanifest` | Generated | SEO and PWA metadata |
 
-```bash
-git clone https://github.com/shehari007/url-shorty-server.git
-cd url-shorty-server
-```
+### Admin
 
-Create .env
+| Path | Purpose |
+| --- | --- |
+| `/admin/login` | Sign in |
+| `/admin` | Overview: counters, trend charts, top and recent links |
+| `/admin/links` | Search, filter, block, expire, delete, restore, bulk actions |
+| `/admin/reports` | Abuse report triage |
+| `/admin/contacts` | Contact form inbox |
+| `/admin/domains` | Destination blocklist |
+| `/admin/audit` | Admin action history |
+| `/admin/accounts` | Admin user management (owner only) |
+| `/admin/account` | Own profile and password change |
 
-```bash
-PORT=5000
+Admin routes are `no-store` and `noindex` via headers in `next.config.ts`, and
+excluded from `robots.txt` and `sitemap.xml`.
 
-DBHOST=
-DBPORT=
-DBUSERNAME=
-DBPASS=
-DBNAME=
+## How admin auth works
 
-DOMAINS=http://localhost:3000
-METHODS='GET,POST'
+The browser never holds a token.
 
-SHORTURLDEF=http://localhost:5000/co/
-PARAMLEN=5
-```
+1. `/admin/login` posts credentials to `POST /api/admin/session` (a Next Route
+   Handler).
+2. That handler calls the API, then stores the access and refresh tokens in
+   **httpOnly, secure, SameSite=Lax cookies**. Only the admin profile is
+   returned to the browser.
+3. The console calls `/api/admin/proxy/*` on its own origin. The proxy attaches
+   the bearer token server-side and forwards to `/api/v1/admin/**`. And nothing
+   else, so it cannot be turned into an open relay.
+4. On a `401`, the proxy transparently refreshes using the rotating refresh
+   token and persists the new pair. If the refresh also fails, it clears the
+   cookies so the UI stops retrying.
 
-Install and run
+Because no token is reachable from JavaScript, an XSS bug cannot exfiltrate the
+session, unlike the common `localStorage` JWT pattern.
 
-```bash
-npm install && npm install -g nodemon
-nodemon index.js
-```
+`proxy.ts` (Next 16's replacement for `middleware.ts`) is only a fast first gate:
+it redirects to `/admin/login` when no session cookie exists. Real authorisation
+happens server-side on every request, `src/app/admin/(console)/layout.tsx`
+validates the session against the API before rendering, and the API enforces
+role checks independently.
 
-## Serverless Deployment
+## SEO
 
-Vercel config is provided in the server repo to deploy as serverless functions with no extra setup.
+- Per-route `metadata` with a shared title template, canonical URLs, and
+  OpenGraph/Twitter cards.
+- JSON-LD on the homepage: `WebApplication`, `WebSite`, `FAQPage`, `HowTo`.
+- Generated `sitemap.xml` and `robots.txt`.
+- Public pages are server-rendered and statically prerendered; content, including
+  every FAQ answer, is present in the initial HTML, not injected by JavaScript.
+- Semantic landmarks, a skip link, and labelled interactive controls throughout.
 
-## Roadmap
+### A note on Ant Design and Server Components
 
-- Google reCAPTCHA integration to reduce bot traffic (in progress)
-- Show links generated by same IP per user (in progress)
+antd and `@ant-design/icons` call `React.createContext`, which does not exist in
+the React Server Components runtime, importing them into a Server Component
+fails the build. So:
 
-## License
+- Server Components use plain semantic HTML styled from `globals.css`.
+- Interactive pieces are `'use client'` islands (they still server-render to HTML).
+- Icons needed inside Server Components are re-exported through
+  `src/components/icons.tsx`, a `'use client'` barrel.
 
-[MIT](https://choosealicense.com/licenses/mit/)
+## Theming
 
-## Feedback
+Light and dark are defined once as CSS custom properties in `globals.css` and
+mirrored as antd tokens in `src/theme/tokens.ts`. An inline script in the
+document head stamps the saved preference on `<html>` before first paint, so a
+returning dark-mode visitor never sees a white flash.
 
-shehariyar@gmail.com
+## Deployment (Vercel)
 
-## Support
+- **Root Directory:** `frontend`
+- **Framework Preset:** **Next.js**, if this project previously deployed Create
+  React App, you must change it from "Create React App"
+- **Build Command / Output Directory:** leave empty (Next.js defaults)
+- **Environment Variables:** everything from `.env.example`, with real values
 
-<a href="https://www.buymeacoffee.com/shehari007">☕ Buy Me A Coffee</a>
+## Scripts
+
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Dev server |
+| `npm run build` | Production build |
+| `npm start` | Serve the production build |
+| `npm run typecheck` | Type-check only |
+| `npm run lint` | ESLint |

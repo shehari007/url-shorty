@@ -1,270 +1,135 @@
 <div align="center">
   <img src="frontend/public/logo.png" height="120px" width="120px" alt="Shorty URL Logo">
   <h1>Shorty URL</h1>
-  <p><strong>A modern, fast, and secure URL shortening service</strong></p>
-  
+  <p><strong>A fast, free URL shortener with real click analytics and a full moderation console</strong></p>
+
   <a href="https://choosealicense.com/licenses/mit/">
     <img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="MIT License">
   </a>
-  <img src="https://img.shields.io/badge/Build-Passing-green?style=flat-square" alt="Build Passing">
+  <img src="https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=nextdotjs" alt="Next.js 16">
   <img src="https://img.shields.io/badge/React-19-61dafb?style=flat-square&logo=react" alt="React 19">
   <img src="https://img.shields.io/badge/Ant%20Design-6-0170fe?style=flat-square&logo=antdesign" alt="Ant Design 6">
-  <img src="https://img.shields.io/badge/Node.js-18+-339933?style=flat-square&logo=node.js" alt="Node.js">
-  <img src="https://img.shields.io/badge/Express-4.x-000000?style=flat-square&logo=express" alt="Express">
+  <img src="https://img.shields.io/badge/Express-5-000000?style=flat-square&logo=express" alt="Express 5">
+  <img src="https://img.shields.io/badge/Drizzle_ORM-0.45-c5f74f?style=flat-square" alt="Drizzle ORM">
+  <img src="https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square&logo=typescript" alt="TypeScript">
 </div>
 
 ---
 
-## ✨ Features
+## Overview
 
-- 🔗 **URL Shortening** — Create short, memorable links instantly
-- 📱 **QR Code Generation** — Download QR codes for any shortened link
-- 📊 **Link Analytics** — Track clicks, unique visitors, and performance
-- 🌙 **Dark Mode** — Beautiful light and dark themes
-- 🔒 **Secure** — HTTPS-only validation, rate limiting, and input sanitization
-- 📝 **Link History** — Local storage-based history of your created links
-- 🚨 **Report System** — Report suspicious or malicious links
-- 📧 **Contact Form** — Built-in contact functionality
-- 📱 **Responsive** — Works perfectly on desktop and mobile
+Shorty is a two-service application:
 
-## 🌐 Live Demo
+| Service | Directory | Stack | Deployed as |
+| --- | --- | --- | --- |
+| **Web** | `frontend/` | Next.js 16 (App Router), React 19, Ant Design 6, TypeScript | `shorty.msyb.dev` |
+| **API + redirects** | `server/` | Express 5, Drizzle ORM, MySQL/TiDB, TypeScript | `short.msyb.dev` |
 
-- **Frontend**: [https://shorty.msyb.dev](https://shorty.msyb.dev)
+The web app serves the public marketing site and the `/admin` console. The API
+serves the JSON endpoints **and** resolves short links (`short.msyb.dev/abc123`).
 
-## 🛠️ Tech Stack
+## Features
 
-| Layer | Technologies |
-|-------|-------------|
-| **Frontend** | React 19, React Router 7, Ant Design 6, CSS3 |
-| **Backend** | Node.js 18+, Express 4, MySQL |
-| **Security** | Helmet.js, Rate Limiting, CORS, Input Validation |
-| **Deployment** | Vercel (Serverless Ready) |
+### Public
 
-## 📁 Project Structure
+- **One-click shortening**. No account, no signup, no paywall.
+- **Real analytics**, total and unique clicks, 30-day trend, referrers, countries, devices, with bot traffic separated out.
+- **QR codes**, downloadable print-ready PNG for every link.
+- **Abuse reporting**, structured categories, auto-flagging, and auto-block on repeated reports.
+- **Light and dark themes**. With no flash of the wrong theme on load.
+- **Built for SEO**, server-rendered pages, per-route metadata, JSON-LD (`WebApplication`, `FAQPage`, `HowTo`), `sitemap.xml`, `robots.txt`, canonical URLs, and OpenGraph/Twitter cards.
 
-```
-url-shorty/
-├── frontend/                 # React frontend application
-│   ├── public/              # Static assets (logo, manifest, etc.)
-│   └── src/
-│       ├── pages/           # Page components (Home, Contact, Report, etc.)
-│       ├── Components/      # Reusable components
-│       ├── context/         # React context (Theme)
-│       ├── services/        # API service layer
-│       ├── App.js           # Main app with routing
-│       └── App.css          # Global styles
-│
-├── server/                   # Express backend API
-│   ├── scripts/             # Database initialization scripts
-│   └── src/
-│       ├── config/          # Database & app configuration
-│       ├── controllers/     # Request handlers
-│       ├── middlewares/     # Security, validation, rate limiting
-│       ├── models/          # Database models
-│       ├── routes/          # API route definitions
-│       └── utils/           # Helper functions & logger
-│
-└── README.md                 # This file
-```
+### Admin console (`/admin`)
 
-## 🚀 Quick Start
+- **Overview**, links, clicks, pending reports and messages at a glance, with 30-day trend charts.
+- **Links**, search and filter by status/domain/date; block, unblock, expire, reactivate, soft-delete, restore, edit title/note/expiry, and bulk actions. Per-link drawer with full analytics and recent visitor detail.
+- **Reports**, triage queue with one-click "resolve and block the link".
+- **Messages**, inbox for the contact form, with statuses and internal notes.
+- **Blocked domains**, destinations refused at creation time, subdomains included.
+- **Audit log**, append-only record of every admin action, including failed sign-ins.
+- **Admin accounts**, owner-only management with three roles.
 
-### Prerequisites
+### Security
 
-- Node.js 18+ (LTS recommended)
-- MySQL 8.0+ (or compatible: MariaDB, PlanetScale, etc.)
-- npm or yarn
+- Argon-grade password hashing (bcrypt, cost 12), short-lived HS256 access tokens, rotating opaque refresh tokens stored hashed.
+- Tokens live in **httpOnly cookies** held by the Next.js server, never in `localStorage`. No XSS token-theft surface.
+- Role-based access control (`owner` > `admin` > `moderator`) enforced server-side on every route.
+- Account lockout after repeated failed sign-ins; identical error messages prevent account enumeration.
+- SSRF/abuse guard: private, loopback, link-local, CGNAT and reserved-TLD destinations are refused, as are URLs carrying embedded credentials.
+- Per-route rate limiting with correct IPv6 subnet handling, strict CSP on both services, and Zod validation on every request body.
 
-### 1. Clone the Repository
+## Quick start
+
+**Prerequisites:** Node.js 20.9+, and a MySQL 8 or TiDB database.
 
 ```bash
 git clone https://github.com/shehari007/url-shorty.git
 cd url-shorty
 ```
 
-### 2. Setup Backend
+### 1. API
 
 ```bash
 cd server
-
-# Install dependencies
 npm install
+cp .env.example .env          # then fill it in, see the table in server/README.md
 
-# Configure environment
-cp .env.example .env
-# Edit .env with your database credentials
+# Generate a signing secret and paste it into ADMIN_JWT_SECRET
+openssl rand -base64 48
 
-# Initialize database (creates all tables)
-npm run db:init
+npm run db:setup              # fresh database
+# ...or, upgrading an existing v2 install:
+npm run db:setup -- upgrade
 
-# Start development server
-npm run dev
+npm run admin:create          # create your first owner account
+npm run dev                   # http://localhost:8080
 ```
 
-### 3. Setup Frontend
+### 2. Web
 
 ```bash
-cd frontend
-
-# Install dependencies
+cd ../frontend
 npm install
-
-# Start development server
-npm start
+cp .env.example .env.local    # point NEXT_PUBLIC_API_URL at the API
+npm run dev                   # http://localhost:3000
 ```
 
-The frontend will be available at `http://localhost:3000` and the API at `http://localhost:8080`.
+Sign in to the console at `http://localhost:3000/admin/login`.
 
-## ⚙️ Environment Variables
+## Project layout
 
-### Server (.env)
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `NODE_ENV` | Environment mode | `development` |
-| `PORT` | Server port | `8080` |
-| `DBHOST` | MySQL host | - |
-| `DBPORT` | MySQL port | `3306` |
-| `DBUSERNAME` | Database username | - |
-| `DBPASS` | Database password | - |
-| `DBNAME` | Database name | - |
-| `SHORTURLDEF` | Base URL for short links | `https://short.msyb.dev/` |
-| `PARAMLEN` | Length of short URL code | `5` |
-| `DOMAINS` | Allowed CORS origins | `http://localhost:3000` |
-
-### Frontend (.env)
-
-| Variable | Description |
-|----------|-------------|
-| `REACT_APP_API_URL` | Backend API URL |
-
-## 📡 API Endpoints
-
-### URL Management
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/shorty-url/generate` | Create a short URL |
-| `GET` | `/co/:shortCode` | Redirect to original URL |
-
-### Analytics
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/shorty-url/stats` | Get overall statistics |
-| `POST` | `/api/shorty-url/perlinkstats` | Get stats for a specific link |
-| `POST` | `/api/shorty-url/stats/track-qr` | Track QR code generation |
-
-### Contact & Reports
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/shorty-url/contact` | Submit contact form |
-| `POST` | `/api/shorty-url/report` | Report a malicious URL |
-
-### Health
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/health` | Server health check |
-
-## 🔒 Security Features
-
-- **Helmet.js** — Secure HTTP headers
-- **Rate Limiting** — Prevent API abuse
-- **Input Validation** — Sanitize all user inputs
-- **SQL Injection Protection** — Parameterized queries
-- **XSS Protection** — Content sanitization
-- **CORS** — Configurable origin whitelist
-- **HTTPS Validation** — Only secure URLs accepted
-
-## 🗄️ Database Schema
-
-| Table | Description |
-|-------|-------------|
-| `shorty_url` | Main URL storage with click tracking |
-| `shorty_visits` | Individual visit tracking |
-| `shorty_contact` | Contact form submissions |
-| `shorty_report` | URL abuse reports |
-| `shorty_analytics` | Event analytics (QR scans, etc.) |
-
-Run `npm run db:init` in the server directory to create all tables automatically.
-
-## 📜 Available Scripts
-
-### Server
-
-| Script | Description |
-|--------|-------------|
-| `npm start` | Start production server |
-| `npm run dev` | Start with hot reload |
-| `npm run db:init` | Initialize database tables |
-| `npm run lint` | Run ESLint |
-
-### Frontend
-
-| Script | Description |
-|--------|-------------|
-| `npm start` | Start development server |
-| `npm run build` | Create production build |
-| `npm test` | Run tests |
-
-## 🚢 Deployment
-
-### Vercel (Recommended)
-
-Both frontend and server are configured for Vercel deployment:
-
-1. Connect your GitHub repository to Vercel
-2. Set environment variables in Vercel dashboard
-3. Deploy!
-
-### Manual Deployment
-
-```bash
-# Frontend
-cd frontend
-npm run build
-# Deploy the 'build' folder to your hosting
-
-# Server
-cd server
-npm start
+```
+url-shorty/
+├─ server/
+│  ├─ api/index.ts            Vercel serverless entry (exports the Express app)
+│  ├─ sql/                    001_baseline.sql · 002_upgrade_v3.sql
+│  ├─ scripts/                setup-db.ts · create-admin.ts
+│  └─ src/
+│     ├─ config/env.ts        Zod-validated environment
+│     ├─ db/                  Drizzle schema + pooled client
+│     ├─ lib/                 errors · logger · crypto · request · url-safety
+│     ├─ middleware/          security · cors · rate-limit · auth · validate
+│     ├─ modules/             links · redirect · stats · reports · contact · admin
+│     └─ routes/              public API + admin router
+└─ frontend/
+   ├─ proxy.ts                Next 16 proxy (was middleware.ts), /admin gate
+   └─ src/
+      ├─ app/
+      │  ├─ (site)/           public pages
+      │  ├─ admin/            login + (console) route group
+      │  └─ api/admin/        BFF: session + authenticated proxy
+      ├─ components/          public + admin UI
+      ├─ lib/                 api client · admin client · server session
+      └─ theme/               design tokens + antd config
 ```
 
-## 📸 Screenshots
+## Documentation
 
-### Home
-![Home](screenshots/1.png)
+- **[server/README.md](server/README.md)**, environment reference, API endpoints, migration guide, deployment.
+- **[frontend/README.md](frontend/README.md)**, environment reference, routing, SEO, deployment.
 
-### Link Stats
-![Link Stats](screenshots/2.png)
+## Licence
 
-### Report Link
-![Report Link](screenshots/3.png)
+MIT, see [LICENSE](LICENSE).
 
-### Dark Mode
-![Dark Mode](screenshots/4.png)
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👨‍💻 Author
-
-**shehari007**
-
-- GitHub: [@shehari007](https://github.com/shehari007)
-
----
-
-<div align="center">
-  <p>Made with ❤️ by shehari007</p>
-  <p>⭐ Star this repo if you find it useful!</p>
-</div>
+Built by [shehari007](https://github.com/shehari007).
