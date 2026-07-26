@@ -210,6 +210,33 @@ duplicate checks, and a click-total comparison.
 > `times_clicked` counter. That counter is preserved as-is; the new figures
 > simply exclude crawlers and link-preview bots, which the v2 code counted.
 
+## A note on the TypeScript version
+
+`typescript` is pinned to an exact **5.9.3**, not a caret range. This is
+deliberate, so please do not "upgrade" it.
+
+`@vercel/node` compiles the serverless function through TypeScript's
+*programmatic* API (`ts.sys`, `ts.createProgram`, `ts.transpileModule`), and it
+prefers a locally installed TypeScript over its own bundled copy. The 7.x npm
+package ships the native Go compiler and does not expose that JavaScript API at
+all, so a Vercel build with TypeScript 7 installed fails with:
+
+```text
+Using TypeScript 7.0.2 (local user-provided)
+Error: Cannot read properties of undefined (reading 'readFile')
+```
+
+| API used by `@vercel/node` | TypeScript 7.0.2 | TypeScript 5.9.3 |
+| --- | --- | --- |
+| `ts.sys` | undefined | object |
+| `ts.sys.readFile` | not available | function |
+| `ts.createProgram` | undefined | function |
+| `ts.transpileModule` | undefined | function |
+
+5.9.3 is the exact version `@vercel/node@5.x` bundles. The CLI (`tsc --noEmit`)
+works fine on 7.x, so this only surfaces at deploy time, never locally. Widen the
+range only once `@vercel/node` supports the 7.x API.
+
 ## Deployment (Vercel)
 
 `vercel.json` routes every request to `api/index.ts`, which exports the Express
@@ -221,6 +248,9 @@ Project settings:
 - **Framework Preset:** Other
 - **Build Command / Output Directory:** leave empty (`vercel.json` drives the build)
 - **Environment Variables:** everything from `.env.example`, with real values
+
+`engines.node` is pinned to `22.x`. Because `vercel.json` uses `builds`, the Node
+version selector in Project Settings is ignored and `engines` is the only control.
 
 Each lambda holds its own connection pool, so keep `DB_POOL_SIZE` small (3-5) and
 well under your database's connection limit.
