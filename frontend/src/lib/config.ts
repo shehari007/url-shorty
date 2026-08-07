@@ -16,8 +16,32 @@ export const PUBLIC_API_URL = trimSlash(process.env.NEXT_PUBLIC_API_URL ?? 'http
 /** Base URL the Next.js server uses. Falls back to the public one. */
 export const SERVER_API_URL = trimSlash(process.env.API_URL ?? PUBLIC_API_URL);
 
-/** Canonical origin of this site, used for metadata, sitemap and OG tags. */
-export const SITE_URL = trimSlash(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000');
+/**
+ * Canonical origin of this site, used for metadata, canonicals, sitemap and OG tags.
+ *
+ * Read on the server only (`layout.tsx`, `sitemap.ts`, `robots.ts`, the home page's
+ * JSON-LD), which is why the platform fallbacks may use unprefixed env vars.
+ *
+ * The fallback chain matters: a deploy that forgets `NEXT_PUBLIC_SITE_URL` would
+ * otherwise publish a sitemap, canonical tags and OG URLs full of `localhost:3000`,
+ * which tells Google the whole site is unreachable.
+ */
+function resolveSiteUrl(): string {
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL;
+  if (explicit) return trimSlash(explicit);
+
+  // Vercel injects these; the first is the stable production domain, the second
+  // is the per-deployment URL, which is still far better than localhost.
+  const platform = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
+  if (platform) return `https://${trimSlash(platform)}`;
+
+  return 'http://localhost:3000';
+}
+
+export const SITE_URL = resolveSiteUrl();
+
+/** True when `SITE_URL` is a real public origin rather than the dev fallback. */
+export const IS_PUBLIC_SITE_URL = !/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:|$)/i.test(SITE_URL);
 
 /** Origin that serves short links, e.g. https://short.msyb.dev */
 export const SHORT_URL_BASE = trimSlash(process.env.NEXT_PUBLIC_SHORT_URL ?? 'http://localhost:8080');

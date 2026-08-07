@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import type { ReactNode } from 'react';
 import { SITE, SITE_URL } from '@/lib/config';
+import { jsonLd, siteGraph } from '@/lib/seo';
 import { ThemeProvider, themeInitScript } from '@/theme/ThemeProvider';
 import './globals.css';
 
@@ -46,7 +47,10 @@ export const metadata: Metadata = {
     'custom short links',
   ],
   category: 'technology',
-  alternates: { canonical: '/' },
+  // No `alternates.canonical` here on purpose. Metadata is inherited, so a root
+  // canonical of '/' silently makes every page that forgets to set its own
+  // canonicalise to the home page, which asks Google to drop it from the index.
+  // Each public page declares its own canonical instead.
   robots: {
     index: true,
     follow: true,
@@ -70,10 +74,13 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: `${SITE.fullName}, Free URL Shortener`,
     description: SITE.description,
+    site: SITE.twitter,
     creator: SITE.twitter,
   },
-  // The <link rel="icon"> tags come from app/icon.svg; this is the legacy fallback.
-  icons: { shortcut: '/favicon.ico' },
+  // `icons` is deliberately NOT set. Defining it here would override the
+  // app/favicon.ico, app/icon.svg and app/apple-icon.png file conventions
+  // entirely, which is exactly how this app ended up shipping a leftover React
+  // logo as its only icon.
   manifest: '/manifest.webmanifest',
   formatDetection: { telephone: false, address: false, email: false },
   ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
@@ -98,6 +105,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
+        {/* Publisher and site identity, emitted once for every page so each one
+            is attributed to the same entity rather than an anonymous URL. */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(siteGraph()) }} />
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

@@ -2,13 +2,18 @@ import type { Metadata } from 'next';
 import { ContactForm } from '@/components/ContactForm';
 import { BugOutlined, CloudOutlined, SafetyCertificateOutlined } from '@/components/icons';
 import { PageHero } from '@/components/PageHero';
+import { jsonLd, pageGraph } from '@/lib/seo';
+
+const TITLE = 'Contact Us';
+const DESCRIPTION =
+  'Questions, bug reports, feature requests or partnership enquiries. Get in touch with the Shorty team.';
 
 export const metadata: Metadata = {
-  title: 'Contact Us',
-  description:
-    'Questions, bug reports, feature requests or partnership enquiries. Get in touch with the Shorty team.',
+  title: TITLE,
+  description: DESCRIPTION,
   alternates: { canonical: '/contact' },
   openGraph: {
+    type: 'website',
     title: 'Contact Us · Shorty',
     description: 'Get in touch with the Shorty team.',
     url: '/contact',
@@ -38,12 +43,18 @@ const POINTS = [
 
 export default function ContactPage() {
   return (
-    <PageHero
-      eyebrow="Get in touch"
-      title="Questions, bugs, or something we should know about?"
-      lede="We read every message. Most get a reply within a couple of working days."
-      points={POINTS}
-      aside={<ContactForm />}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(pageGraph({ path: '/contact', title: TITLE, description: DESCRIPTION })) }}
+      />
+      <PageHero
+        eyebrow="Get in touch"
+        title="Questions, bugs, or something we should know about?"
+        lede="We read every message. Most get a reply within a couple of working days."
+        points={POINTS}
+        aside={<ContactForm />}
+      />
+    </>
   );
 }

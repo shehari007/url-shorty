@@ -1,14 +1,26 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE, shortDomain } from '@/lib/config';
+import { jsonLd, pageGraph, updatedLabel } from '@/lib/seo';
+
+const TITLE = 'Privacy Policy';
+const DESCRIPTION = `What ${SITE.fullName} collects when you shorten a link or click one, why, how long it is kept, and how to have it removed.`;
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy',
-  description: `What ${SITE.fullName} collects when you shorten a link or click one, why, how long it is kept, and how to have it removed.`,
+  title: TITLE,
+  description: DESCRIPTION,
   alternates: { canonical: '/privacy' },
+  openGraph: {
+    type: 'article',
+    title: `${TITLE} · Shorty`,
+    description: DESCRIPTION,
+    url: '/privacy',
+  },
 };
 
-const UPDATED = 'July 2026';
+// Comes from the route table, so the date shown here and the <lastmod> in the
+// sitemap can never disagree.
+const UPDATED = updatedLabel('/privacy');
 
 const SECTIONS = [
   {
@@ -159,6 +171,10 @@ const SECTIONS = [
 export default function PrivacyPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(pageGraph({ path: '/privacy', title: TITLE, description: DESCRIPTION })) }}
+      />
       <section className="page-hero" style={{ paddingBottom: 8 }}>
         <div className="hero__glow hero__glow--2" aria-hidden="true" />
         <div className="container">

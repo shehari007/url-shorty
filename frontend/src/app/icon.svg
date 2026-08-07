@@ -1,16 +1,17 @@
 <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="b" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#2563EB"/>
-      <stop offset="0.5" stop-color="#06B6D4"/>
-      <stop offset="1" stop-color="#10B981"/>
+      <stop stop-color="#2563EB"/><stop offset="0.5" stop-color="#06B6D4"/><stop offset="1" stop-color="#10B981"/>
+    </linearGradient>
+    <linearGradient id="s" x1="0" y1="0" x2="0" y2="48" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff" stop-opacity="0.34"/><stop offset="0.55" stop-color="#fff" stop-opacity="0"/>
     </linearGradient>
   </defs>
   <rect width="48" height="48" rx="11" fill="url(#b)"/>
-  <ellipse cx="24" cy="24" rx="16.5" ry="7.5" transform="rotate(-30 24 24)" stroke="#fff" stroke-opacity="0.45" stroke-width="1.8"/>
-  <g stroke="#fff" stroke-width="3.8" stroke-linecap="round" fill="none">
+  <rect width="48" height="48" rx="11" fill="url(#s)"/><g transform="translate(24 24) scale(1.42) translate(-24 -24)">
+  <g stroke="#fff" stroke-width="3.3" stroke-linecap="round" fill="none">
     <path d="M20.4 27.6 27.6 20.4"/>
     <path d="M18.6 22.2 16.2 24.6a5.1 5.1 0 0 0 7.2 7.2l2.4-2.4"/>
     <path d="M29.4 25.8l2.4-2.4a5.1 5.1 0 0 0-7.2-7.2l-2.4 2.4"/>
-  </g>
+  </g></g>
 </svg>

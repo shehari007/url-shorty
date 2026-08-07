@@ -2,13 +2,18 @@ import type { Metadata } from 'next';
 import { BugOutlined, SafetyCertificateOutlined, ThunderboltOutlined } from '@/components/icons';
 import { PageHero } from '@/components/PageHero';
 import { ReportForm } from '@/components/ReportForm';
+import { jsonLd, pageGraph } from '@/lib/seo';
+
+const TITLE = 'Report a Malicious Link';
+const DESCRIPTION =
+  'Report a Shorty short link that leads to phishing, malware, spam or other abusive content. Every report is reviewed by a moderator.';
 
 export const metadata: Metadata = {
-  title: 'Report a Malicious Link',
-  description:
-    'Report a Shorty short link that leads to phishing, malware, spam or other abusive content. Every report is reviewed by a moderator.',
+  title: TITLE,
+  description: DESCRIPTION,
   alternates: { canonical: '/report' },
   openGraph: {
+    type: 'website',
     title: 'Report a Malicious Link · Shorty',
     description: 'Help keep Shorty safe by reporting links used for phishing, malware or spam.',
     url: '/report',
@@ -38,12 +43,18 @@ const POINTS = [
 
 export default function ReportPage() {
   return (
-    <PageHero
-      eyebrow="Trust and safety"
-      title="Found a Shorty link being used for harm?"
-      lede="Shorty is only useful if people can trust the links. Tell us about one that is being abused and we will act on it."
-      points={POINTS}
-      aside={<ReportForm />}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(pageGraph({ path: '/report', title: TITLE, description: DESCRIPTION })) }}
+      />
+      <PageHero
+        eyebrow="Trust and safety"
+        title="Found a Shorty link being used for harm?"
+        lede="Shorty is only useful if people can trust the links. Tell us about one that is being abused and we will act on it."
+        points={POINTS}
+        aside={<ReportForm />}
+      />
+    </>
   );
 }

@@ -1,15 +1,27 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE, shortDomain } from '@/lib/config';
+import { jsonLd, pageGraph, updatedLabel } from '@/lib/seo';
+
+const TITLE = 'Terms of Service';
+const DESCRIPTION = `The rules for using ${SITE.fullName}: acceptable use, prohibited content, moderation and liability.`;
 
 export const metadata: Metadata = {
-  title: 'Terms of Service',
-  description: `The rules for using ${SITE.fullName}: acceptable use, prohibited content, moderation and liability.`,
+  title: TITLE,
+  description: DESCRIPTION,
   alternates: { canonical: '/terms' },
   robots: { index: true, follow: true },
+  openGraph: {
+    type: 'article',
+    title: `${TITLE} · Shorty`,
+    description: DESCRIPTION,
+    url: '/terms',
+  },
 };
 
-const UPDATED = 'July 2026';
+// Comes from the route table, so the date shown here and the <lastmod> in the
+// sitemap can never disagree.
+const UPDATED = updatedLabel('/terms');
 
 /** Sections drive both the contents sidebar and the body, so they cannot drift. */
 const SECTIONS = [
@@ -139,6 +151,10 @@ const SECTIONS = [
 export default function TermsPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(pageGraph({ path: '/terms', title: TITLE, description: DESCRIPTION })) }}
+      />
       <section className="page-hero" style={{ paddingBottom: 8 }}>
         <div className="hero__glow hero__glow--1" aria-hidden="true" />
         <div className="container">

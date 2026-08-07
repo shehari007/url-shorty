@@ -15,12 +15,15 @@ import { Shortener } from '@/components/Shortener';
 import { StatsBand } from '@/components/StatsBand';
 import { fetchFromServer } from '@/lib/api';
 import { SITE, SITE_URL, shortDomain } from '@/lib/config';
+import { ORG_ID, SITE_ID, jsonLd, updatedAt } from '@/lib/seo';
 import type { PublicStatsResponse } from '@/lib/types';
+
+const TITLE = `${SITE.fullName}, Free URL Shortener with QR Codes and Click Analytics`;
 
 export const metadata: Metadata = {
   // `absolute` opts out of the root "%s · Shorty" template. The brand name is
   // already in this title and would otherwise appear twice.
-  title: { absolute: `${SITE.fullName}, Free URL Shortener with QR Codes and Click Analytics` },
+  title: { absolute: TITLE },
   description: SITE.description,
   alternates: { canonical: '/' },
 };
@@ -114,55 +117,70 @@ export default async function HomePage() {
   const stats = await fetchFromServer<PublicStatsResponse>('/api/v1/stats', 60);
   const totals = stats?.totals;
 
-  /** Structured data, so Google can render a richer result for the homepage. */
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@graph': [
-      {
-        '@type': 'WebApplication',
-        '@id': `${SITE_URL}/#app`,
-        name: SITE.fullName,
-        url: SITE_URL,
-        description: SITE.description,
-        applicationCategory: 'UtilitiesApplication',
-        operatingSystem: 'Any',
-        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-        featureList: FEATURES.map((feature) => feature.title),
-        author: { '@type': 'Person', name: SITE.author, url: 'https://github.com/shehari007' },
-      },
-      {
-        '@type': 'WebSite',
-        '@id': `${SITE_URL}/#website`,
-        url: SITE_URL,
-        name: SITE.fullName,
-        description: SITE.description,
-        publisher: { '@id': `${SITE_URL}/#app` },
-      },
-      {
-        '@type': 'FAQPage',
-        '@id': `${SITE_URL}/#faq`,
-        mainEntity: FAQ.map((item) => ({
-          '@type': 'Question',
-          name: item.q,
-          acceptedAnswer: { '@type': 'Answer', text: item.a },
-        })),
-      },
-      {
-        '@type': 'HowTo',
-        name: 'How to shorten a URL with Shorty',
-        step: STEPS.map((step, index) => ({
-          '@type': 'HowToStep',
-          position: index + 1,
-          name: step.title,
-          text: step.body,
-        })),
-      },
-    ],
-  };
+  /**
+   * Structured data, so Google can render a richer result for the home page.
+   *
+   * The `Organization` and `WebSite` nodes come from the root layout; this graph
+   * only references them by `@id` so the entity is not declared twice.
+   */
+  const graph = [
+    {
+      '@type': 'WebPage',
+      '@id': `${SITE_URL}/#webpage`,
+      url: SITE_URL,
+      name: TITLE,
+      description: SITE.description,
+      inLanguage: 'en',
+      isPartOf: { '@id': SITE_ID },
+      dateModified: updatedAt('/'),
+      about: { '@id': `${SITE_URL}/#app` },
+      primaryImageOfPage: { '@type': 'ImageObject', url: `${SITE_URL}/opengraph-image` },
+    },
+    {
+      '@type': 'WebApplication',
+      '@id': `${SITE_URL}/#app`,
+      name: SITE.fullName,
+      url: SITE_URL,
+      description: SITE.description,
+      applicationCategory: 'UtilitiesApplication',
+      operatingSystem: 'Any',
+      browserRequirements: 'Requires JavaScript',
+      // A price of 0 is what makes the "Free" annotation eligible; omitting the
+      // offer entirely just reads as "price unknown".
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD', availability: 'https://schema.org/InStock' },
+      featureList: FEATURES.map((feature) => feature.title),
+      screenshot: `${SITE_URL}/opengraph-image`,
+      isAccessibleForFree: true,
+      publisher: { '@id': ORG_ID },
+      author: { '@type': 'Person', name: SITE.author, url: 'https://github.com/shehari007' },
+    },
+    {
+      '@type': 'FAQPage',
+      '@id': `${SITE_URL}/#faq`,
+      isPartOf: { '@id': `${SITE_URL}/#webpage` },
+      mainEntity: FAQ.map((item) => ({
+        '@type': 'Question',
+        name: item.q,
+        acceptedAnswer: { '@type': 'Answer', text: item.a },
+      })),
+    },
+    {
+      '@type': 'HowTo',
+      '@id': `${SITE_URL}/#howto`,
+      name: 'How to shorten a URL with Shorty',
+      totalTime: 'PT1M',
+      step: STEPS.map((step, index) => ({
+        '@type': 'HowToStep',
+        position: index + 1,
+        name: step.title,
+        text: step.body,
+      })),
+    },
+  ];
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(graph) }} />
 
       {/* ------------------------------ hero ------------------------------ */}
       <section className="hero">
