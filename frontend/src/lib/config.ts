@@ -48,6 +48,12 @@ export const SHORT_URL_BASE = trimSlash(process.env.NEXT_PUBLIC_SHORT_URL ?? 'ht
 
 export const GITHUB_URL = process.env.NEXT_PUBLIC_GITHUB_URL ?? 'https://github.com/shehari007/url-shorty';
 
+/** Injected from `package.json` by `next.config.ts`, so it tracks the release. */
+export const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? '0.0.0';
+
+/** Release notes for the running version. */
+export const RELEASE_URL = `${GITHUB_URL}/releases/tag/v${APP_VERSION}`;
+
 export const SITE = {
   name: 'Shorty',
   fullName: 'Shorty URL',

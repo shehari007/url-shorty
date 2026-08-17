@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { env } from '../../config/env.js';
 import { db } from '../../db/index.js';
 import { adminSessions, adminUsers } from '../../db/schema.js';
-import { generateOpaqueToken, hashPassword, sha256, verifyPassword } from '../../lib/crypto.js';
+import { dummyPasswordHash, generateOpaqueToken, hashPassword, sha256, verifyPassword } from '../../lib/crypto.js';
 import { AppError } from '../../lib/errors.js';
 import { sendOk } from '../../lib/http.js';
 import { logger } from '../../lib/logger.js';
@@ -53,11 +53,16 @@ export async function login(req: Request, res: Response) {
   const { email, password } = req.body as z.infer<typeof loginSchema>;
   const genericFailure = AppError.unauthorized('Incorrect email or password');
 
+  // Warm the comparison hash before branching, so the one-off cost of deriving
+  // it lands on whichever request happens to be first rather than only ever on
+  // the unknown-account path, where it would itself be a timing signal.
+  dummyPasswordHash();
+
   const [account] = await db.select().from(adminUsers).where(eq(adminUsers.email, email)).limit(1);
 
   if (!account) {
     // Spend comparable time so a missing account is not detectably faster.
-    await verifyPassword(password, '$2b$12$invalidinvalidinvalidinvalidinvalidinvalidinvalidinvalidin');
+    await verifyPassword(password, dummyPasswordHash());
     await recordAudit({
       actor: null,
       action: 'admin.login_failed',
@@ -70,14 +75,22 @@ export async function login(req: Request, res: Response) {
   }
 
   if (account.lockedUntil && account.lockedUntil.getTime() > Date.now()) {
-    // `round`, not `ceil`, a lock set 15 minutes ago is a hair under 15
-    // minutes remaining, and ceil would report a confusing "16 minutes".
-    const minutes = Math.max(1, Math.round((account.lockedUntil.getTime() - Date.now()) / 60_000));
-    throw new AppError(
-      423,
-      'ACCOUNT_LOCKED',
-      `Too many failed attempts. Try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`,
-    );
+    // Same 401 and same wording as every other failure, and the same bcrypt
+    // cost before it. A distinct 423 (or an early, hash-free return) would
+    // confirm the address belongs to a real admin, which is precisely what the
+    // generic failure exists to prevent. The lock is still enforced; the caller
+    // simply is not told that it is the reason.
+    await verifyPassword(password, account.passwordHash);
+    await recordAudit({
+      actor: { id: account.id, email: account.email },
+      action: 'admin.login_failed',
+      entity: 'admin',
+      entityId: account.id,
+      meta: { reason: 'locked', lockedUntil: account.lockedUntil.toISOString() },
+      client: req.client,
+    });
+    logger.warn({ adminId: account.id, ip: req.client.ip }, 'login attempt on locked admin account');
+    throw genericFailure;
   }
 
   const passwordOk = await verifyPassword(password, account.passwordHash);
@@ -238,11 +251,19 @@ export async function logout(req: Request, res: Response) {
       .set({ revokedAt: new Date() })
       .where(eq(adminSessions.refreshTokenHash, sha256(refreshToken)));
   } else {
-    // No token supplied, end every session for this admin.
+    // No token supplied, end every session for this admin. Bump the token
+    // version alongside it: revoking the refresh rows alone would leave the
+    // access token issued with them valid for the rest of its TTL, so a
+    // "sign out everywhere" would not actually sign anyone out for 30 minutes.
     await db
       .update(adminSessions)
       .set({ revokedAt: new Date() })
       .where(and(eq(adminSessions.adminId, admin.id), isNull(adminSessions.revokedAt)));
+
+    await db
+      .update(adminUsers)
+      .set({ tokenVersion: sql`${adminUsers.tokenVersion} + 1`, updatedAt: new Date() })
+      .where(eq(adminUsers.id, admin.id));
   }
 
   await recordAudit({ actor: admin, action: 'admin.logout', entity: 'admin', entityId: admin.id, client: req.client });

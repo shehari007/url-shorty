@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔐 Report a security vulnerability
+    url: https://github.com/shehari007/url-shorty/security/advisories/new
+    about: Please report vulnerabilities privately, never as a public issue.
+  - name: 💬 Question or idea
+    url: https://github.com/shehari007/url-shorty/discussions
+    about: Ask about setup, self-hosting or usage in Discussions.
+  - name: 📚 Documentation
+    url: https://github.com/shehari007/url-shorty#-documentation
+    about: Environment reference, API endpoints, migrations and deployment.
+  - name: 🚀 Live demo
+    url: https://shorty.msyb.dev
+    about: Try Shorty before filing an issue.

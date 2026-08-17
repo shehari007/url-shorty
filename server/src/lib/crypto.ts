@@ -65,6 +65,32 @@ export async function hashPassword(plain: string): Promise<string> {
   return bcrypt.hash(plain, BCRYPT_ROUNDS);
 }
 
+let dummyHash: string | undefined;
+
+/**
+ * A real bcrypt hash, of a value nobody knows, for the login path to compare
+ * against when the email matches no account. Verifying it costs the same as
+ * verifying a genuine one, so an attacker cannot tell the two apart by timing.
+ *
+ * It has to be *generated*, never a hand-written literal: bcryptjs validates
+ * the hash shape first and returns immediately if it is malformed. The literal
+ * previously used here was 65 characters instead of 60, so the "equalising"
+ * comparison finished in 0.04 ms against 265 ms for a real account, a 6800x
+ * difference that enumerated every admin address in one request each.
+ *
+ * Computed lazily. At cost 12 this takes ~250 ms, and the redirect path imports
+ * this module too, so it must not land on every cold start.
+ */
+export function dummyPasswordHash(): string {
+  if (dummyHash === undefined) {
+    dummyHash = bcrypt.hashSync(generateOpaqueToken(32), BCRYPT_ROUNDS);
+    if (dummyHash.length !== 60) {
+      throw new Error(`bcrypt returned a ${dummyHash.length}-character hash; the login timing guard is broken`);
+    }
+  }
+  return dummyHash;
+}
+
 export async function verifyPassword(plain: string, hash: string): Promise<boolean> {
   try {
     return await bcrypt.compare(plain, hash);

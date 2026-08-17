@@ -18,6 +18,9 @@ out/
 *.tsbuildinfo
 next-env.d.ts
 
+# Fonts downloaded by scripts/generate-og.mjs, regenerated on demand
+frontend/.cache/
+
 # Drizzle-generated migrations (the checked-in SQL under server/sql is the source of truth)
 server/drizzle/
 

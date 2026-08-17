@@ -1,0 +1,66 @@
+name: ✨ Feature request
+description: Suggest a capability or an improvement
+title: '[Feature]: '
+labels: ['enhancement', 'needs triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea. Check the [roadmap](https://github.com/shehari007/url-shorty#-roadmap)
+        first — it may already be planned.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight
+      options:
+        - label: I searched existing issues and discussions for this idea
+          required: true
+
+  - type: dropdown
+    id: service
+    attributes:
+      label: Which part of Shorty?
+      options:
+        - Web app (frontend/)
+        - API and redirects (server/)
+        - Both
+        - Admin console
+        - Self-hosting / deployment
+        - Documentation
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the situation you are in, not the solution you have in mind.
+      placeholder: When I ..., I have to ..., which means ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What should Shorty do instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+      description: Including workarounds you are using today.
+
+  - type: dropdown
+    id: contribute
+    attributes:
+      label: Would you be willing to work on this?
+      options:
+        - 'Yes, I would like to open a PR'
+        - 'Yes, with some guidance'
+        - 'No, just suggesting'
+    validations:
+      required: true

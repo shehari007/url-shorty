@@ -1,4 +1,4 @@
-import { isIP } from 'node:net';
+import { BlockList, isIP } from 'node:net';
 import { env } from '../config/env.js';
 
 /**
@@ -37,41 +37,84 @@ const LOCAL_HOSTNAMES = new Set(['localhost', 'localhost.localdomain', 'ip6-loca
 /** Never resolvable on the public internet (RFC 2606 / RFC 6761 and friends). */
 const RESERVED_TLDS = new Set(['local', 'localhost', 'internal', 'intranet', 'lan', 'home', 'corp', 'test', 'invalid', 'example', 'onion']);
 
-function isPrivateIpv4(host: string): boolean {
-  const parts = host.split('.').map(Number);
-  if (parts.length !== 4 || parts.some((n) => !Number.isInteger(n) || n < 0 || n > 255)) return false;
-  const [a = 0, b = 0] = parts;
+/**
+ * Address ranges a destination must never point at.
+ *
+ * `net.BlockList` rather than hand-rolled octet arithmetic, because it resolves
+ * IPv4-mapped IPv6 addresses against the IPv4 entries natively. That is the
+ * whole game here: the WHATWG URL parser re-serialises `[::ffff:127.0.0.1]` to
+ * its hex form `[::ffff:7f00:1]`, so the dotted-quad string match this replaces
+ * never fired, and `::ffff:a9fe:a9fe` walked straight through to the cloud
+ * metadata endpoint. Integer, octal and hex IPv4 literals (`2130706433`,
+ * `0x7f000001`, `0177.0.0.1`) need no special handling for the same reason in
+ * reverse: `new URL()` has already normalised them to dotted-quad by this point.
+ */
+const PRIVATE_RANGES = new BlockList();
 
-  if (a === 10) return true; // 10.0.0.0/8
-  if (a === 127) return true; // loopback
-  if (a === 0) return true; // "this" network
-  if (a === 169 && b === 254) return true; // link-local (incl. cloud metadata 169.254.169.254)
-  if (a === 172 && b >= 16 && b <= 31) return true; // 172.16.0.0/12
-  if (a === 192 && b === 168) return true; // 192.168.0.0/16
-  if (a === 100 && b >= 64 && b <= 127) return true; // CGNAT 100.64.0.0/10
-  if (a === 192 && b === 0) return true; // 192.0.0.0/24 + 192.0.2.0/24
-  if (a >= 224) return true; // multicast + reserved
-  return false;
-}
+PRIVATE_RANGES.addSubnet('0.0.0.0', 8, 'ipv4'); // "this" network
+PRIVATE_RANGES.addSubnet('10.0.0.0', 8, 'ipv4'); // RFC 1918
+PRIVATE_RANGES.addSubnet('100.64.0.0', 10, 'ipv4'); // CGNAT
+PRIVATE_RANGES.addSubnet('127.0.0.0', 8, 'ipv4'); // loopback
+PRIVATE_RANGES.addSubnet('169.254.0.0', 16, 'ipv4'); // link-local, incl. 169.254.169.254 metadata
+PRIVATE_RANGES.addSubnet('172.16.0.0', 12, 'ipv4'); // RFC 1918
+PRIVATE_RANGES.addSubnet('192.0.0.0', 24, 'ipv4'); // IETF protocol assignments
+PRIVATE_RANGES.addSubnet('192.0.2.0', 24, 'ipv4'); // TEST-NET-1
+PRIVATE_RANGES.addSubnet('192.168.0.0', 16, 'ipv4'); // RFC 1918
+PRIVATE_RANGES.addSubnet('198.18.0.0', 15, 'ipv4'); // benchmarking
+PRIVATE_RANGES.addSubnet('198.51.100.0', 24, 'ipv4'); // TEST-NET-2
+PRIVATE_RANGES.addSubnet('203.0.113.0', 24, 'ipv4'); // TEST-NET-3
+PRIVATE_RANGES.addSubnet('224.0.0.0', 4, 'ipv4'); // multicast
+PRIVATE_RANGES.addSubnet('240.0.0.0', 4, 'ipv4'); // reserved, incl. 255.255.255.255
 
-function isPrivateIpv6(host: string): boolean {
-  const normalised = host.replace(/^\[|\]$/g, '').toLowerCase();
-  if (normalised === '::1' || normalised === '::') return true;
-  if (normalised.startsWith('fc') || normalised.startsWith('fd')) return true; // unique local
-  if (normalised.startsWith('fe80')) return true; // link-local
-  // IPv4-mapped addresses smuggle a v4 target through a v6 literal.
-  const mapped = normalised.match(/::ffff:(\d+\.\d+\.\d+\.\d+)$/);
-  if (mapped?.[1]) return isPrivateIpv4(mapped[1]);
-  return false;
-}
+PRIVATE_RANGES.addSubnet('::', 96, 'ipv6'); // unspecified, loopback, deprecated IPv4-compatible
+PRIVATE_RANGES.addSubnet('64:ff9b::', 96, 'ipv6'); // NAT64
+PRIVATE_RANGES.addSubnet('100::', 64, 'ipv6'); // discard-only
+PRIVATE_RANGES.addSubnet('2001::', 32, 'ipv6'); // Teredo (2001:0000::/32, not 2001:db8::)
+PRIVATE_RANGES.addSubnet('2001:db8::', 32, 'ipv6'); // documentation
+PRIVATE_RANGES.addSubnet('2002::', 16, 'ipv6'); // 6to4, e.g. 2002:7f00:1:: for 127.0.0.1
+PRIVATE_RANGES.addSubnet('fc00::', 7, 'ipv6'); // unique local
+PRIVATE_RANGES.addSubnet('fe80::', 10, 'ipv6'); // link-local
+PRIVATE_RANGES.addSubnet('fec0::', 10, 'ipv6'); // deprecated site-local
+PRIVATE_RANGES.addSubnet('ff00::', 8, 'ipv6'); // multicast
+
+/**
+ * Wildcard-DNS services, which resolve any hostname that encodes an address
+ * straight to that address: `169-254-169-254.nip.io` is the cloud metadata
+ * endpoint wearing a public name. Without these the whole range table above is
+ * optional for anyone willing to paste a different hostname.
+ */
+const WILDCARD_DNS_DOMAINS = [
+  'nip.io',
+  'sslip.io',
+  'xip.io',
+  'localtest.me',
+  'traefik.me',
+  'lvh.me',
+  'vcap.me',
+];
+
+/** A label spelling out an IPv4 address, dot- or dash-separated. */
+const EMBEDDED_IPV4 = /(?:^|[.-])((?:\d{1,3}[-.]){3}\d{1,3})(?:[.-]|$)/;
 
 export function isPrivateHost(hostname: string): boolean {
-  const host = hostname.toLowerCase();
-  if (LOCAL_HOSTNAMES.has(host)) return true;
+  const lowered = hostname.toLowerCase();
+  if (LOCAL_HOSTNAMES.has(lowered)) return true;
 
-  const ipVersion = isIP(host.replace(/^\[|\]$/g, ''));
-  if (ipVersion === 4) return isPrivateIpv4(host);
-  if (ipVersion === 6) return isPrivateIpv6(host);
+  // `URL.hostname` keeps the brackets on an IPv6 literal; `isIP` rejects them.
+  const host = lowered.replace(/^\[|\]$/g, '');
+  const ipVersion = isIP(host);
+  if (ipVersion === 4) return PRIVATE_RANGES.check(host, 'ipv4');
+  // 'ipv6' is deliberate even for an IPv4-mapped address: BlockList maps it back
+  // onto the IPv4 entries above, which is what closes the `::ffff:` bypass.
+  if (ipVersion === 6) return PRIVATE_RANGES.check(host, 'ipv6');
+
+  if (WILDCARD_DNS_DOMAINS.some((domain) => hostMatchesDomain(host, domain))) return true;
+
+  // `10-0-0-1.example.com` and friends. Only rejected when the embedded address
+  // is itself private, so an ordinary host that happens to contain a public
+  // dotted-quad is unaffected.
+  const embedded = EMBEDDED_IPV4.exec(host)?.[1]?.replace(/-/g, '.');
+  if (embedded && isIP(embedded) === 4 && PRIVATE_RANGES.check(embedded, 'ipv4')) return true;
 
   const tld = host.split('.').pop() ?? '';
   if (RESERVED_TLDS.has(tld)) return true;

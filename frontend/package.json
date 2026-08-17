@@ -1,8 +1,28 @@
 {
   "name": "url-shorty-web",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "private": true,
   "description": "Shorty URL, Next.js 16 App Router frontend with a public site and an admin control panel.",
+  "keywords": [
+    "url-shortener",
+    "link-shortener",
+    "nextjs",
+    "react",
+    "ant-design",
+    "typescript",
+    "analytics"
+  ],
+  "homepage": "https://github.com/shehari007/url-shorty#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shehari007/url-shorty.git",
+    "directory": "frontend"
+  },
+  "bugs": {
+    "url": "https://github.com/shehari007/url-shorty/issues"
+  },
+  "author": "Muhammad Sheharyar Butt (https://github.com/shehari007)",
+  "license": "MIT",
   "engines": {
     "node": ">=20.9.0"
   },
@@ -10,8 +30,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "og": "node scripts/generate-og.mjs"
   },
   "dependencies": {
     "@ant-design/icons": "^6.3.2",

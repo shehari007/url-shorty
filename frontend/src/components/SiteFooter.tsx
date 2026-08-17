@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Logo } from './Logo';
-import { GITHUB_URL, SITE, shortDomain } from '@/lib/config';
+import { APP_VERSION, GITHUB_URL, RELEASE_URL, SITE, shortDomain } from '@/lib/config';
 
 /**
  * Server component, deliberately free of antd so it renders with zero
@@ -77,6 +77,16 @@ export function SiteFooter() {
             Built by{' '}
             <a href="https://github.com/shehari007" target="_blank" rel="noopener noreferrer">
               {SITE.author}
+            </a>{' '}
+            ·{' '}
+            <a
+              className="site-footer__version"
+              href={RELEASE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={`Release notes for v${APP_VERSION}`}
+            >
+              v{APP_VERSION}
             </a>
           </span>
         </div>

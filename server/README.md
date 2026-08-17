@@ -51,6 +51,15 @@ surfacing as a 500 later.
 | `DOMAINS` | `http://localhost:3000` | Comma-separated CORS allow-list |
 | `HOMEPAGE_LINK` / `CONTACTUS_LINK` | localhost | Used by the redirect interstitial pages |
 | `TRUST_PROXY_HOPS` | `1` | Proxies in front of the app. A wrong value makes rate limits spoofable |
+| `TRUSTED_IP_HEADER` | _unset_ | Header to read the client IP from, e.g. `cf-connecting-ip`. Only set it if your proxy overwrites that header on every request; otherwise clients can spoof their address |
+
+> [!IMPORTANT]
+> Client IPs come from `req.ip`, which Express derives from `X-Forwarded-For` using
+> `TRUST_PROXY_HOPS`. Admin sign-in reaches this API through the web app's BFF rather than
+> directly from the browser, so on a platform where the edge sets a trustworthy header
+> (Vercel's `x-vercel-forwarded-for`, Cloudflare's `cf-connecting-ip`) set
+> `TRUSTED_IP_HEADER` to it — otherwise `lastLoginIp` and the login audit entries record
+> the web app's egress address instead of the operator's.
 | `ADMIN_JWT_SECRET` |, | **Required, 32+ chars.** Changing it signs everyone out |
 | `ADMIN_ACCESS_TTL_MIN` | `30` | Access-token lifetime (5-720) |
 | `ADMIN_REFRESH_TTL_DAYS` | `7` | Refresh-token lifetime (1-90) |
@@ -103,6 +112,14 @@ Everything else needs `Authorization: Bearer <accessToken>`:
 | `DELETE` | `/contacts/:id` | admin |
 | `GET` | `/blocked-domains` | moderator |
 | `POST` `DELETE` | `/blocked-domains`, `/blocked-domains/:id` | admin |
+
+> [!NOTE]
+> `POST /blocked-domains` is retroactive. A leading `www.` is stripped before the entry is
+> stored, so one row covers the apex, `www.` and every subdomain, and every existing link
+> whose domain matches is blacklisted and flagged in the same request. The response and the
+> audit entry carry `linksTakenDown`. Removing the entry does **not** unblock those links:
+> some may have been blacklisted by a moderator or by the report threshold, so restoring
+> them stays a deliberate bulk action.
 | `GET` `POST` `PATCH` | `/admins`, `/admins/:id`, `/admins/:id/revoke-sessions` | **owner** |
 
 ### Redirects & health

@@ -129,4 +129,4 @@ returning dark-mode visitor never sees a white flash.
 | `npm run build` | Production build |
 | `npm start` | Serve the production build |
 | `npm run typecheck` | Type-check only |
-| `npm run lint` | ESLint |
+| `npm run og` | Regenerate `public/og.png` and `public/github-social-preview.png` |

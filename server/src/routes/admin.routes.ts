@@ -1,7 +1,12 @@
 import { Router } from 'express';
 import { asyncHandler } from '../lib/async-handler.js';
 import { requireAdmin, requireRole } from '../middleware/auth.js';
-import { adminApiLimiter, adminLoginLimiter } from '../middleware/rate-limit.js';
+import {
+  adminApiLimiter,
+  adminLoginIpLimiter,
+  adminLoginLimiter,
+  passwordChangeLimiter,
+} from '../middleware/rate-limit.js';
 import { idParamSchema, validateBody, validateParams, validateQuery } from '../middleware/validate.js';
 import {
   changePassword,
@@ -61,20 +66,43 @@ export const adminRouter: Router = Router();
 
 /* -------------------------------- auth ---------------------------------- */
 
-adminRouter.post('/auth/login', adminLoginLimiter, validateBody(loginSchema), asyncHandler(login));
-adminRouter.post('/auth/refresh', adminApiLimiter, validateBody(refreshSchema), asyncHandler(refresh));
+/**
+ * The limiter is mounted first, and separately from `requireAdmin`.
+ *
+ * `router.use()` only runs for requests that reach it in stack order, so while
+ * the two were combined at the bottom of this file the four `/auth/*` routes
+ * registered above it matched and terminated first and were throttled by
+ * nothing at all — `adminRouter` is itself mounted above `apiLimiter` in
+ * `routes/index.ts`, so there was no outer ceiling either. `/auth/password`
+ * burns two bcrypt hashes per call, which made it a free CPU-exhaustion lever
+ * for any token holder.
+ *
+ * `requireAdmin` cannot move up here with it: `/auth/login` and `/auth/refresh`
+ * are necessarily unauthenticated.
+ */
+adminRouter.use(adminApiLimiter);
+
+adminRouter.post(
+  '/auth/login',
+  adminLoginIpLimiter,
+  adminLoginLimiter,
+  validateBody(loginSchema),
+  asyncHandler(login),
+);
+adminRouter.post('/auth/refresh', validateBody(refreshSchema), asyncHandler(refresh));
 adminRouter.post('/auth/logout', requireAdmin, asyncHandler(logout));
 adminRouter.get('/auth/me', requireAdmin, asyncHandler(me));
 adminRouter.post(
   '/auth/password',
   requireAdmin,
+  passwordChangeLimiter,
   validateBody(changePasswordSchema),
   asyncHandler(changePassword),
 );
 
 /* ---------------------- everything below is protected -------------------- */
 
-adminRouter.use(requireAdmin, adminApiLimiter);
+adminRouter.use(requireAdmin);
 
 /* ------------------------------ dashboard -------------------------------- */
 

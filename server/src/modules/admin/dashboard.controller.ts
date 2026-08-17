@@ -1,8 +1,8 @@
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq, isNull } from 'drizzle-orm';
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 import { db } from '../../db/index.js';
-import { adminUsers, adminRoles } from '../../db/schema.js';
+import { adminSessions, adminUsers, adminRoles } from '../../db/schema.js';
 import { hashPassword } from '../../lib/crypto.js';
 import { AppError } from '../../lib/errors.js';
 import { buildPageMeta, cache, sendCreated, sendOk } from '../../lib/http.js';
@@ -156,6 +156,16 @@ export async function updateAdmin(req: Request, res: Response) {
 
   await db.update(adminUsers).set(patch).where(eq(adminUsers.id, id));
 
+  // Revoke the refresh rows too, not just the token version. Otherwise
+  // deactivating and later reactivating inside the refresh window brings every
+  // outstanding session back to life.
+  if (body.isActive === false) {
+    await db
+      .update(adminSessions)
+      .set({ revokedAt: new Date() })
+      .where(and(eq(adminSessions.adminId, id), isNull(adminSessions.revokedAt)));
+  }
+
   await recordAudit({
     actor,
     action: body.isActive === false ? 'admin.deactivated' : 'admin.updated',
@@ -168,7 +178,16 @@ export async function updateAdmin(req: Request, res: Response) {
   return sendOk(res, { updated: true, id });
 }
 
-/** Force-signs-out an admin everywhere by invalidating their token version. */
+/**
+ * Force-signs-out an admin everywhere.
+ *
+ * Both halves are load-bearing, and for a while this did only the first:
+ * bumping `tokenVersion` kills outstanding *access* tokens, but `refresh()`
+ * never compares a session against it, so an un-revoked refresh row could be
+ * exchanged straight back for a new access token carrying the *new* version.
+ * The revocation reported success while leaving a stolen refresh token — up to
+ * `ADMIN_REFRESH_TTL_DAYS` of it — fully working.
+ */
 export async function revokeAdminSessions(req: Request, res: Response) {
   const actor = currentAdmin(req);
   const id = Number(req.params.id);
@@ -180,6 +199,11 @@ export async function revokeAdminSessions(req: Request, res: Response) {
     .update(adminUsers)
     .set({ tokenVersion: target.tokenVersion + 1, updatedAt: new Date() })
     .where(eq(adminUsers.id, id));
+
+  await db
+    .update(adminSessions)
+    .set({ revokedAt: new Date() })
+    .where(and(eq(adminSessions.adminId, id), isNull(adminSessions.revokedAt)));
 
   await recordAudit({
     actor,

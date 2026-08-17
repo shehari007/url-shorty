@@ -55,6 +55,20 @@ const envSchema = z
     HOMEPAGE_LINK: z.string().url().default('http://localhost:3000'),
     CONTACTUS_LINK: z.string().url().default('http://localhost:3000/contact'),
     TRUST_PROXY_HOPS: int(1, 0, 10),
+    /**
+     * Lower-case name of a single proxy header to read the client IP from, e.g.
+     * `cf-connecting-ip` behind Cloudflare or `x-vercel-forwarded-for` on Vercel.
+     *
+     * Leave unset unless a proxy you control *overwrites* that header on every
+     * inbound request. Nothing strips these at the edge by default, so trusting
+     * one that is merely present lets any client pick their own address and walk
+     * past every rate limiter. Unset means `req.ip`, which Express derives from
+     * `X-Forwarded-For` using TRUST_PROXY_HOPS and cannot be spoofed past.
+     */
+    TRUSTED_IP_HEADER: z
+      .string()
+      .optional()
+      .transform((value) => value?.trim().toLowerCase() || undefined),
 
     // ---- Admin auth ----------------------------------------------------
     /** 32+ random bytes, e.g. `openssl rand -base64 48`. */

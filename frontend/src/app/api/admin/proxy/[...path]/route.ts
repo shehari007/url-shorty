@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { adminRequest, clearSession, writeSession } from '@/lib/server/session';
+import { adminRequest, clearSession, crossOriginRejection, isSameOrigin, writeSession } from '@/lib/server/session';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -18,6 +18,13 @@ export const dynamic = 'force-dynamic';
 type Params = { params: Promise<{ path: string[] }> };
 
 async function handle(request: Request, { params }: Params, method: string) {
+  // Only unsafe methods need the check: a cross-origin GET is sent by the
+  // browser but its response is unreadable without CORS headers, which this
+  // route never sets.
+  if (method !== 'GET' && !isSameOrigin(request)) {
+    return NextResponse.json(crossOriginRejection(), { status: 403 });
+  }
+
   const { path } = await params;
 
   const segments = path.filter((segment) => segment !== '..' && segment !== '.');

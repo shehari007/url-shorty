@@ -3,9 +3,11 @@ import cookieParser from 'cookie-parser';
 import express, { type Express } from 'express';
 import { z } from 'zod';
 import { env } from './config/env.js';
+import { APP_VERSION } from './config/version.js';
 import { checkDatabase } from './db/index.js';
 import { asyncHandler } from './lib/async-handler.js';
 import { sendOk } from './lib/http.js';
+import { logger } from './lib/logger.js';
 import { errorHandler, notFoundHandler } from './middleware/error-handler.js';
 import { redirectLimiter } from './middleware/rate-limit.js';
 import { requestContext, requestLogger } from './middleware/request-context.js';
@@ -48,20 +50,35 @@ export function createApp(): Express {
 
   /* ----------------------------- health ---------------------------------- */
 
+  /**
+   * Unauthenticated and deliberately terse.
+   *
+   * `checkDatabase()` surfaces the driver's own message, which names the
+   * database host, port and account (`getaddrinfo ENOTFOUND
+   * gateway01...tidbcloud.com`, `Access denied for user 'x'@'y'`). That is
+   * useful in a log and nowhere else, so it is logged and dropped rather than
+   * returned. The 200/503 split stays, since uptime monitors key on it.
+   */
   app.get(
     '/health',
     asyncHandler(async (_req, res) => {
       const database = await checkDatabase();
-      const body = {
-        status: database.ok ? ('healthy' as const) : ('degraded' as const),
-        version: '3.0.0',
-        environment: env.NODE_ENV,
-        uptimeSeconds: Math.round(process.uptime()),
-        database,
-        timestamp: new Date().toISOString(),
-      };
+      if (!database.ok) {
+        logger.error({ err: database.error, latencyMs: database.latencyMs }, 'health check failed');
+      }
+
       res.setHeader('Cache-Control', 'no-store');
-      return sendOk(res, body, undefined, database.ok ? 200 : 503);
+      return sendOk(
+        res,
+        {
+          status: database.ok ? ('healthy' as const) : ('degraded' as const),
+          version: APP_VERSION,
+          database: { ok: database.ok },
+          timestamp: new Date().toISOString(),
+        },
+        undefined,
+        database.ok ? 200 : 503,
+      );
     }),
   );
 

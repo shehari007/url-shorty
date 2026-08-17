@@ -24,7 +24,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Logo } from '@/components/Logo';
 import { AdminApiError, adminApi, signOut } from '@/lib/adminClient';
-import { SITE } from '@/lib/config';
+import { APP_VERSION, SITE } from '@/lib/config';
 import type { AdminDashboard, AdminProfile } from '@/lib/types';
 import { useThemeMode } from '@/theme/ThemeProvider';
 
@@ -196,7 +196,7 @@ export function AdminShell({ admin, children }: { admin: AdminProfile; children:
         <Tooltip title={apiUp ? 'API reachable' : 'API unreachable'} placement="right">
           <div className="admin-sider__foot">
             <span className={apiUp ? 'status-dot' : 'status-dot status-dot--down'} aria-hidden="true" />
-            {!collapsed && <span>{apiUp ? 'API connected' : 'API unreachable'} · v3.0.0</span>}
+            {!collapsed && <span>{apiUp ? 'API connected' : 'API unreachable'} · v{APP_VERSION}</span>}
           </div>
         </Tooltip>
       </Sider>

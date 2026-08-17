@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
 import { SERVER_API_URL } from '@/lib/config';
-import { adminRequest, clearSession, writeSession, type SessionTokens } from '@/lib/server/session';
+import {
+  adminRequest,
+  clearSession,
+  crossOriginRejection,
+  isSameOrigin,
+  writeSession,
+  type SessionTokens,
+} from '@/lib/server/session';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -13,6 +20,21 @@ export const dynamic = 'force-dynamic';
  * comes back in the response body.
  */
 export async function POST(request: Request) {
+  if (!isSameOrigin(request)) {
+    return NextResponse.json(crossOriginRejection(), { status: 403 });
+  }
+
+  // Without a Content-Type check this route accepted `text/plain`, which is a
+  // preflight-free form post: an attacker's page could sign a visiting admin
+  // into an account the attacker controls, and every moderation action that
+  // operator then took would be audited under the attacker's identity.
+  if (!request.headers.get('content-type')?.includes('application/json')) {
+    return NextResponse.json(
+      { success: false, error: { code: 'UNSUPPORTED_MEDIA_TYPE', message: 'Expected application/json' } },
+      { status: 415 },
+    );
+  }
+
   let body: { email?: string; password?: string };
   try {
     body = (await request.json()) as { email?: string; password?: string };
@@ -75,7 +97,11 @@ export async function POST(request: Request) {
 }
 
 /** DELETE, sign out. Revokes the session upstream, then drops the cookies. */
-export async function DELETE() {
+export async function DELETE(request: Request) {
+  if (!isSameOrigin(request)) {
+    return NextResponse.json(crossOriginRejection(), { status: 403 });
+  }
+
   await adminRequest('/api/v1/admin/auth/logout', { method: 'POST' }).catch(() => undefined);
   await clearSession();
   return NextResponse.json({ success: true, data: { signedOut: true } });

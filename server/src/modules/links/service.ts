@@ -28,14 +28,32 @@ export async function getBlockedDomains(force = false): Promise<string[]> {
     blocklistCache = { domains: rows.map((row) => row.domain), loadedAt: Date.now() };
     return blocklistCache.domains;
   } catch (error) {
-    // A blocklist read failure must not take link creation offline.
-    logger.error({ err: error }, 'failed to load blocked domains; falling back to empty list');
-    return blocklistCache?.domains ?? [];
+    // Serving a *stale* list is fine, the entries in it are still blocked.
+    if (blocklistCache) {
+      logger.error({ err: error }, 'failed to refresh blocked domains; serving the last known list');
+      return blocklistCache.domains;
+    }
+
+    // Never loaded, so we genuinely cannot say whether this destination is
+    // blocked. Falling back to `[]` here failed *open*: on a cold serverless
+    // process whose first database round-trip times out, every blocked domain
+    // would be accepted and permanently minted, surviving the recovery.
+    logger.error({ err: error }, 'blocklist unavailable and never loaded; refusing link creation');
+    throw new AppError(
+      503,
+      'INTERNAL',
+      'Link creation is briefly unavailable while we check our blocklist. Please try again in a moment.',
+    );
   }
 }
 
+/**
+ * Marks the cache stale rather than dropping it, so a refresh that fails
+ * immediately after a moderator action still has a last-known-good list to fall
+ * back on instead of tripping the fail-closed branch above.
+ */
 export function invalidateBlocklistCache(): void {
-  blocklistCache = null;
+  if (blocklistCache) blocklistCache.loadedAt = 0;
 }
 
 /* -------------------------------------------------------------------------- */

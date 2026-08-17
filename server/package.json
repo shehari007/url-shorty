@@ -1,6 +1,6 @@
 {
   "name": "url-shorty-server",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "private": true,
   "description": "Shorty URL API, Express 5 + TypeScript + Drizzle ORM, with a hardened public API and an authenticated admin control plane.",
   "type": "module",
@@ -24,11 +24,25 @@
   },
   "keywords": [
     "url-shortener",
+    "link-shortener",
     "express",
     "drizzle-orm",
     "typescript",
-    "mysql"
+    "mysql",
+    "tidb",
+    "self-hosted",
+    "analytics"
   ],
+  "homepage": "https://github.com/shehari007/url-shorty#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shehari007/url-shorty.git",
+    "directory": "server"
+  },
+  "bugs": {
+    "url": "https://github.com/shehari007/url-shorty/issues"
+  },
+  "author": "Muhammad Sheharyar Butt (https://github.com/shehari007)",
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^3.0.3",

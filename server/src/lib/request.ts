@@ -1,12 +1,6 @@
 import type { Request } from 'express';
 import { UAParser } from 'ua-parser-js';
-
-/**
- * Ordered list of proxy headers we trust, most specific first. Vercel sets
- * `x-vercel-forwarded-for`; Cloudflare sets `cf-connecting-ip`. Falling through
- * to `req.ip` relies on Express's `trust proxy` setting being correct.
- */
-const IP_HEADERS = ['x-vercel-forwarded-for', 'cf-connecting-ip', 'true-client-ip', 'x-real-ip'] as const;
+import { env } from '../config/env.js';
 
 function firstHeaderValue(value: string | string[] | undefined): string | undefined {
   if (!value) return undefined;
@@ -14,14 +8,25 @@ function firstHeaderValue(value: string | string[] | undefined): string | undefi
   return raw?.split(',')[0]?.trim() || undefined;
 }
 
+/**
+ * The client's address, as trustworthy as the deployment allows.
+ *
+ * `req.ip` is the default on purpose. Express walks `X-Forwarded-For` from the
+ * right using `trust proxy`, so a client cannot prepend entries and be believed.
+ * Reading `x-real-ip` / `cf-connecting-ip` / `true-client-ip` first, as this
+ * once did, threw that away: nothing strips those headers on the way in, so any
+ * client could send a fresh value per request, get a clean rate-limit bucket
+ * every time, and write chosen addresses into visit rows, audit entries,
+ * `lastLoginIp` and the IP-based dedupe on reports and contact messages.
+ *
+ * Set TRUSTED_IP_HEADER only when a proxy you control overwrites that header on
+ * every inbound request.
+ */
 export function getClientIp(req: Request): string {
-  for (const header of IP_HEADERS) {
-    const candidate = firstHeaderValue(req.headers[header]);
+  if (env.TRUSTED_IP_HEADER) {
+    const candidate = firstHeaderValue(req.headers[env.TRUSTED_IP_HEADER]);
     if (candidate) return normaliseIp(candidate);
   }
-
-  const forwarded = firstHeaderValue(req.headers['x-forwarded-for']);
-  if (forwarded) return normaliseIp(forwarded);
 
   if (req.ip) return normaliseIp(req.ip);
   return normaliseIp(req.socket?.remoteAddress ?? 'unknown');

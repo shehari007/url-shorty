@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+import { version } from './package.json' with { type: 'json' };
 
 /**
  * Security headers applied to every route.
@@ -35,6 +36,11 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
+
+  // Single source of truth for the version the UI displays: read from
+  // package.json at build time so the footer and the admin sidebar cannot drift
+  // away from the released version the way two hardcoded strings did.
+  env: { NEXT_PUBLIC_APP_VERSION: version },
 
   // antd ships ESM that benefits from being transpiled alongside the app.
   transpilePackages: ['antd', '@ant-design/icons', 'rc-util', 'rc-picker', 'rc-tree', 'rc-table'],

@@ -1,6 +1,6 @@
 import 'server-only';
 import { cookies } from 'next/headers';
-import { SERVER_API_URL } from '../config';
+import { SERVER_API_URL, SITE_URL } from '../config';
 import type { AdminProfile } from '../types';
 
 /**
@@ -23,6 +23,52 @@ const baseCookie = {
   sameSite: 'lax' as const,
   path: '/',
 };
+
+/**
+ * Same-origin check for state-changing requests.
+ *
+ * `sameSite: 'lax'` above is a same-*site* control, and site means registrable
+ * domain. This product deliberately runs `short.msyb.dev` next to
+ * `shorty.msyb.dev`, so any page on any current or future `msyb.dev` subdomain
+ * counts as same-site and gets the admin cookies attached on a cross-page
+ * `fetch`. The attacker could not read the response, but every write landed:
+ * bulk link actions, blocklist edits, and against an owner's browser, creating
+ * a new admin account.
+ *
+ * Browsers always send `Origin` on unsafe methods, and the admin UI is
+ * same-origin, so a missing header is a rejection rather than a pass. The host
+ * the request actually arrived on is accepted alongside the configured one, so
+ * preview deployments keep working when `NEXT_PUBLIC_SITE_URL` names production.
+ */
+export function isSameOrigin(request: Request): boolean {
+  const origin = request.headers.get('origin');
+  if (!origin) return false;
+
+  let originHost: string;
+  try {
+    originHost = new URL(origin).host;
+  } catch {
+    return false;
+  }
+
+  let configuredHost: string | null = null;
+  try {
+    configuredHost = new URL(SITE_URL).host;
+  } catch {
+    configuredHost = null;
+  }
+
+  const arrivedHost = request.headers.get('x-forwarded-host') ?? request.headers.get('host');
+  return originHost === configuredHost || (arrivedHost !== null && originHost === arrivedHost);
+}
+
+/** The 403 every cross-site attempt gets, shaped like every other API error. */
+export function crossOriginRejection(): { success: false; error: { code: string; message: string } } {
+  return {
+    success: false,
+    error: { code: 'CROSS_ORIGIN', message: 'This request must come from the Shorty admin console.' },
+  };
+}
 
 export interface SessionTokens {
   accessToken: string;

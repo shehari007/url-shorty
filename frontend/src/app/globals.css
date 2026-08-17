@@ -1141,6 +1141,13 @@ video {
   color: var(--text-muted);
 }
 
+/* Monospace so the digits read as a version rather than as prose. */
+.site-footer__version {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  letter-spacing: -0.2px;
+}
+
 /* --------------------------------------------------------------------------
    Admin
    -------------------------------------------------------------------------- */

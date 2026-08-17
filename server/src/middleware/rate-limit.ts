@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import type { Request, RequestHandler, Response } from 'express';
 import { ipKeyGenerator, rateLimit, type Options } from 'express-rate-limit';
 import { AppError } from '../lib/errors.js';
@@ -86,9 +87,33 @@ export const redirectLimiter = rateLimit({
 });
 
 /**
- * Brute-force protection for the admin login endpoint. Keyed on IP *and* the
- * submitted email so one attacker cannot lock out every account from one IP,
- * and one account cannot be hammered from a rotating IP pool.
+ * Outer bound on the login endpoint, keyed on IP alone.
+ *
+ * This is the limiter that actually caps work, because its key space is not
+ * attacker-controlled. `adminLoginLimiter` below keys on the submitted email,
+ * which means a caller who varies the email gets an unlimited supply of fresh
+ * buckets, and every one of those requests costs a full bcrypt cost-12 compare
+ * on the same thread that serves public redirects.
+ *
+ * Deliberately without `skipSuccessfulRequests`: refunding quota on success
+ * would let a caller who holds one valid credential top the bucket back up.
+ */
+export const adminLoginIpLimiter = build({
+  windowMs: 15 * MINUTE,
+  limit: 20,
+  message: 'Too many sign-in attempts. Please wait before trying again.',
+});
+
+/**
+ * Per-account brute-force protection, keyed on IP *and* the submitted email so
+ * one account cannot be hammered from a rotating IP pool.
+ *
+ * The email is normalised exactly the way `emailSchema` normalises it before
+ * the account lookup. Without the `trim()` these were distinct buckets that
+ * resolved to the same row, so `"admin@x.com"`, `"admin@x.com "` and
+ * `"\tadmin@x.com"` gave three independent budgets against one account — enough
+ * to walk any known admin into a permanent lockout. It is hashed so the store
+ * holds fixed-width keys rather than attacker-chosen strings.
  */
 export const adminLoginLimiter = build({
   windowMs: 15 * MINUTE,
@@ -96,9 +121,27 @@ export const adminLoginLimiter = build({
   skipSuccessfulRequests: true,
   message: 'Too many sign-in attempts. Please wait before trying again.',
   keyGenerator: (req) => {
-    const email = typeof req.body?.email === 'string' ? req.body.email.toLowerCase().slice(0, 255) : 'unknown';
-    return `${ipKeyGenerator(getClientIp(req))}:${email}`;
+    const raw = typeof req.body?.email === 'string' ? req.body.email : '';
+    const email = raw.trim().toLowerCase().slice(0, 255);
+    const suffix = email ? createHash('sha256').update(email).digest('hex').slice(0, 32) : 'unknown';
+    return `${ipKeyGenerator(getClientIp(req))}:${suffix}`;
   },
+});
+
+/**
+ * Password change runs two bcrypt cost-12 operations (verify, then hash), so an
+ * unthrottled loop of wrong-current-password calls is roughly 600 ms of
+ * main-thread CPU per request from any token holder, including a `moderator`.
+ *
+ * Keyed on the admin id, with an IP fallback that matters: keying on
+ * `req.admin?.id` alone would collapse every unauthenticated caller into a
+ * single shared bucket.
+ */
+export const passwordChangeLimiter = build({
+  windowMs: 15 * MINUTE,
+  limit: 5,
+  message: 'Too many password change attempts. Please wait before trying again.',
+  keyGenerator: (req) => (req.admin ? `pw:${req.admin.id}` : keyByClientIp(req)),
 });
 
 /** Authenticated admin traffic, high, but still bounded. */

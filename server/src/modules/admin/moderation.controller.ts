@@ -1,4 +1,4 @@
-import { and, desc, eq, like, or, sql, type SQL } from 'drizzle-orm';
+import { and, desc, eq, isNull, like, or, sql, type SQL } from 'drizzle-orm';
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 import { db } from '../../db/index.js';
@@ -14,7 +14,7 @@ import { AppError } from '../../lib/errors.js';
 import { buildPageMeta, cache, sendCreated, sendOk } from '../../lib/http.js';
 import { currentAdmin } from '../../middleware/auth.js';
 import { paginationSchema, query } from '../../middleware/validate.js';
-import { invalidateBlocklistCache } from '../links/service.js';
+import { getBlockedDomains, invalidateBlocklistCache } from '../links/service.js';
 import { recordAudit } from './audit.js';
 
 /* -------------------------------------------------------------------------- */
@@ -247,6 +247,16 @@ export async function deleteContact(req: Request, res: Response) {
 /*  Blocked domains                                                           */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * A blocked domain is stored in its broadest useful form.
+ *
+ * The entry always covers the host itself *and* every subdomain (see
+ * `hostMatchesDomain`), so a leading `www.` is stripped before storing:
+ * blocking `www.evil.com` verbatim would have covered `a.www.evil.com` but not
+ * `evil.com` itself, which is almost certainly the opposite of what the
+ * moderator clicking the button intended. Strip it once, and one entry covers
+ * the apex, `www.`, and everything below.
+ */
 export const createBlockedDomainSchema = z.object({
   domain: z
     .string()
@@ -254,7 +264,9 @@ export const createBlockedDomainSchema = z.object({
     .toLowerCase()
     .min(3)
     .max(255)
-    .transform((value) => value.replace(/^https?:\/\//, '').replace(/^\.+|\.+$/g, '').split('/')[0] ?? '')
+    .transform((value) =>
+      (value.replace(/^https?:\/\//, '').replace(/^\.+|\.+$/g, '').split('/')[0] ?? '').replace(/^www\./, ''),
+    )
     .pipe(
       z
         .string()
@@ -270,6 +282,17 @@ export async function listBlockedDomains(_req: Request, res: Response) {
   return sendOk(res, rows);
 }
 
+/**
+ * Blocks a destination domain, and takes down what already points at it.
+ *
+ * The blocklist has exactly one other reader, `inspectDestinationUrl` during
+ * link creation, so on its own an entry here only ever stopped *future* links.
+ * Anything already minted kept redirecting, which made the control close to
+ * useless in the situation it exists for: mass-create links to a phishing
+ * domain, wait for the first report, and blocking the domain left every
+ * existing link serving traffic from our own domain while the console
+ * cheerfully displayed it as blocked.
+ */
 export async function addBlockedDomain(req: Request, res: Response) {
   const admin = currentAdmin(req);
   const body = req.body as z.infer<typeof createBlockedDomainSchema>;
@@ -284,17 +307,35 @@ export async function addBlockedDomain(req: Request, res: Response) {
     createdAt: new Date(),
   });
 
+  // Mirror `hostMatchesDomain`: the apex plus every subdomain, which covers
+  // `www.` without a special case. The domain has already been validated
+  // against /^[a-z0-9.-]+\.[a-z]{2,}$/, so it carries no LIKE wildcards.
+  const [result] = await db
+    .update(links)
+    .set({ blacklisted: 1, flagged: 1 })
+    .where(
+      and(
+        isNull(links.deletedAt),
+        or(eq(links.domain, body.domain), like(links.domain, `%.${body.domain}`)),
+      ),
+    );
+  const takenDown = result.affectedRows;
+
+  // Refresh eagerly rather than only invalidating, so the very next creation
+  // sees the new entry even if the follow-up read were to fail.
   invalidateBlocklistCache();
+  await getBlockedDomains(true).catch(() => undefined);
+
   await recordAudit({
     actor: admin,
     action: 'domain.blocked',
     entity: 'domain',
     entityId: body.domain,
-    meta: { reason: body.reason },
+    meta: { reason: body.reason, linksTakenDown: takenDown },
     client: req.client,
   });
 
-  return sendCreated(res, { domain: body.domain, blocked: true });
+  return sendCreated(res, { domain: body.domain, blocked: true, linksTakenDown: takenDown });
 }
 
 export async function removeBlockedDomain(req: Request, res: Response) {

@@ -1,0 +1,112 @@
+name: 🐛 Bug report
+description: Something is broken or behaves differently than documented
+title: '[Bug]: '
+labels: ['bug', 'needs triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please **do not** use this form for security
+        vulnerabilities — see [SECURITY.md](https://github.com/shehari007/url-shorty/blob/main/SECURITY.md)
+        for the private disclosure process.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight
+      options:
+        - label: I searched existing issues and this has not already been reported
+          required: true
+        - label: I am running the latest version on `main`
+          required: false
+
+  - type: dropdown
+    id: service
+    attributes:
+      label: Affected service
+      description: Shorty is two independently deployable services.
+      options:
+        - Web app (frontend/)
+        - API and redirects (server/)
+        - Both
+        - Not sure
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Shortening a link
+        - Redirects
+        - Analytics / statistics
+        - QR codes
+        - Abuse reporting or contact form
+        - Admin console
+        - Authentication / sessions
+        - Database setup or migrations
+        - Deployment
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did you get instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or error output
+      description: |
+        Server logs, browser console output, or the failing request/response.
+        **Redact secrets** — `ADMIN_JWT_SECRET`, database credentials, tokens.
+      render: shell
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js version
+      description: Output of `node -v`. The API targets 22.x; the web app needs 20.9+.
+      placeholder: v22.15.0
+    validations:
+      required: true
+
+  - type: input
+    id: database
+    attributes:
+      label: Database
+      placeholder: MySQL 8.4 local / TiDB Cloud Serverless
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: OS and deployment
+      placeholder: Windows 11, local dev / Ubuntu 24.04, Vercel
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else?
+      description: Screenshots, related issues, things you already tried.

@@ -41,8 +41,20 @@ export function DomainsManager() {
     const values = (await form.validateFields()) as { domain: string; reason?: string };
     setSaving(true);
     try {
-      await adminApi.post('blocked-domains', values);
-      message.success(`${values.domain} is now blocked`);
+      const { data } = await adminApi.post<{ domain: string; linksTakenDown: number }>(
+        'blocked-domains',
+        values,
+      );
+      // The server normalises the entry (a leading `www.` is stripped, since one
+      // entry covers the apex and every subdomain), so report what it stored
+      // rather than what was typed.
+      const domain = data?.domain ?? values.domain;
+      const taken = data?.linksTakenDown ?? 0;
+      message.success(
+        taken > 0
+          ? `${domain} is now blocked, and ${taken} existing link${taken === 1 ? '' : 's'} taken offline`
+          : `${domain} is now blocked`,
+      );
       form.resetFields();
       setAdding(false);
       await load();
